@@ -667,3 +667,26 @@ Masih perlu diaudit/migrasi:
 - package dependencies dan environment example setelah seluruh import Supabase benar-benar hilang.
 
 Jangan hapus dependency/config Supabase atau mengklaim migrasi selesai sebelum audit residual dan build lulus.
+
+
+### 18.6 Penyelesaian tambahan halaman, ekspor, dan logo — 18 November 2026
+
+Tambahan perubahan:
+- Seluruh halaman detail domain yang sebelumnya memakai Supabase query untuk committee/division, rundown, tugas, procurement, finance, kategori, transaksi, dan commitments dialihkan ke MySQL.
+- Halaman CSV export dialihkan ke query SQL dengan JOIN dan tetap mempertahankan formula-injection escaping.
+- Endpoint `GET /api/events` diselaraskan dengan skema event utama dan dibatasi ke grup Owner yang sedang login.
+- Logo grup disimpan di MySQL BLOB dan disajikan oleh endpoint `GET /api/groups/[id]/logo`; tidak menambah service Docker.
+- Schema awal menambahkan `logo_mime` dan `logo_data`; migrasi tambahan `002_group_logo_blob_storage.sql` disediakan untuk database yang sudah memiliki tabel groups.
+
+### 18.7 Pekerjaan yang masih wajib dilakukan
+
+1. Lakukan pencarian menyeluruh di semua file `src/` untuk memastikan tidak ada pemakaian Supabase yang tersisa (termasuk komponen, API, route publik, dan konfigurasi).
+2. Periksa semua route privat dan endpoint API agar guard MySQL dijalankan; khususnya endpoint ekspor dan endpoint event harus memiliki otorisasi group scope.
+3. Audit helper `getEventContext` dan seluruh pemanggilnya agar bentuk data hasil query tetap kompatibel.
+4. Periksa seluruh validator Zod dan nama kolom yang dihasilkan agar cocok dengan schema MySQL.
+5. Audit schema 001/002. **Jangan jalankan pada volume demo lama dulu.** Tabel `events` lokal lama memakai ID numerik dan `event_date`; schema aplikasi penuh memakai UUID dan `start_date`. Siapkan migrasi kompatibilitas yang mempertahankan baris demo dan menyesuaikan PHP sebelum eksekusi.
+6. Build aplikasi dengan Docker/Node, perbaiki seluruh error compile/runtime, kemudian uji alur Owner dan Panitia end-to-end.
+7. Periksa implementasi session (expiry, rotasi, logout, cookie), registrasi, claim invitation, serta pembatasan akses antar grup.
+8. Update dokumentasi setup/migrasi untuk volume baru dan volume lama secara terpisah.
+
+Status saat catatan ini ditulis: banyak source query/action sudah dialihkan ke MySQL, tetapi belum ada hasil build dan uji end-to-end setelah seluruh perubahan. Belum boleh merge atau menyatakan migrasi selesai.
