@@ -6,3 +6,8 @@
 
 # Docker local data
 mysql_data/
+
+# Next.js local dependencies and build
+mini-event-management/app-next/node_modules/
+mini-event-management/app-next/.next/
+mini-event-management/app-next/.env*

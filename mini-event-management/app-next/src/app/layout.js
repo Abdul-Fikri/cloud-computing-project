@@ -1,0 +1,35 @@
+import { Geist, Geist_Mono } from "next/font/google";
+import AppLoadingProvider from "@/components/layout/AppLoadingProvider";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata = {
+  title: {
+    default: "Mini Event Management",
+    template: "%s · Mini Event Management",
+  },
+  description:
+    "Kelola jadwal, panitia, tugas, pengadaan, dan keuangan acara berskala kecil.",
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html
+      lang="id"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">
+        <AppLoadingProvider>{children}</AppLoadingProvider>
+      </body>
+    </html>
+  );
+}

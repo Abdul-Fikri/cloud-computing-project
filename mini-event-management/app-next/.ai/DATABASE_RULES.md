@@ -1,0 +1,29 @@
+# Database and Supabase Rules
+
+- Database: Supabase PostgreSQL.
+- Authentication: Supabase Auth.
+- Storage: Supabase Storage.
+- Data access: Supabase JS Client and `@supabase/ssr`; no ORM is currently used.
+- `supabase/schema.sql` is for initial setup on an empty database. Never rerun it against an existing project database.
+- Incremental changes belong in `supabase/migrations/`.
+- Migration files identified during the latest review:
+  - `20261108_owner_panitia_foundation.sql`
+  - `20261109_member_invitations.sql`
+  - `20261110_group_logos.sql`
+  - `20261111_group_logo_bucket.sql`
+  - `20261111_procurement_finance_integration.sql`
+  - `20261112_event_divisions.sql`
+  - `20261112_event_lifecycle_automation.sql`
+- Verify actual remote migration history and schema before assuming a migration was applied.
+- Owner prefers reviewing and manually applying SQL in Supabase SQL Editor unless another workflow is agreed.
+- Never connect to or mutate production, run production migrations, or change production data without explicit approval.
+- Do not disable RLS or relax policies as a debugging shortcut.
+- `SUPABASE_SERVICE_ROLE_KEY` and `sb_secret_...` keys must remain server-only. Never add `NEXT_PUBLIC_` to secrets.
+- `NEXT_PUBLIC_SUPABASE_URL` and the publishable key are client configuration, but do not copy actual environment values into docs, commits, screenshots, or chat.
+- Never log raw invitation tokens, cookies, or credentials.
+- A migration file existing in Git is not evidence it has been applied to the production database.
+- After a migration, record the environment, migration name, and verification result without recording secrets.
+- Event lifecycle migration: `20261112_event_lifecycle_automation.sql`. Existing events are backfilled to manual mode; future inserts default to automatic. The migration adds timeline date constraints and extends the event status check. The migration file is not evidence that it has been applied.
+- Procurement–Finance migration: `20261111_procurement_finance_integration.sql`. It uses `ADD COLUMN IF NOT EXISTS` for integration columns and validates their expected types so a compatible pre-existing `procurement_items.category_id` does not stop the migration. `supabase/schema.sql` mirrors the Procurement–Finance fields and trigger behavior for fresh databases. Production application remains unconfirmed until checked in the target Supabase project.
+
+- Event divisions: `20261112_event_divisions.sql` creates event-scoped `event_divisions`, backfills existing `event_members.division` labels, adds a composite `division_id` foreign key, and keeps the text label synchronized for Panitia/CSV compatibility. Owner CRUD is protected by group RLS; Panitia receives read-only access for assigned events. The migration is authored in PR #22 and is not confirmed applied to Supabase.

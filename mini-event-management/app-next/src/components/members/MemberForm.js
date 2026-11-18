@@ -1,0 +1,31 @@
+"use client";
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { saveMember } from "@/actions/members";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/TextField";
+
+const initial = { ok: false, message: "", errors: {}, values: {} };
+
+export default function MemberForm({ member = null, returnTo = "/members" }) {
+  const [state, formAction, pending] = useActionState(
+    saveMember.bind(null, member?.id ?? null),
+    initial,
+  );
+  const value = (key) => state.values?.[key] ?? member?.[key] ?? "";
+
+  return (
+    <form action={formAction} className="max-w-2xl space-y-5">
+      <input type="hidden" name="return_to" value={returnTo} />
+      {state.message ? <Alert>{state.message}</Alert> : null}
+      <TextField id="full_name" name="full_name" label="Nama lengkap" required defaultValue={value("full_name")} error={state.errors?.full_name} />
+      <TextField id="contact" name="contact" label="Kontak (opsional)" hint="Nomor telepon atau email." defaultValue={value("contact")} error={state.errors?.contact} />
+      <div className="flex gap-2">
+        <Button type="submit" pending={pending} pendingText="Menyimpan…">Simpan anggota</Button>
+        <Link href={returnTo} className="rounded-xl border border-[#D8E3ED] px-4 py-2.5 text-sm font-medium text-[#475569] transition-colors hover:bg-[#F8FAFC]">Batal</Link>
+      </div>
+    </form>
+  );
+}
