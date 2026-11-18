@@ -21,7 +21,7 @@ UI dan validasi aplikasi akan dipertahankan sejauh memungkinkan. Supabase Auth, 
 
 - `docker-compose.yml`: orkestrasi service.
 - `database/init/`: skrip inisialisasi MySQL untuk volume baru.
-- `database/migrations/`: perubahan schema yang perlu diterapkan secara eksplisit, termasuk `001_mini_event_management_mysql.sql` dan `002_group_logo_blob_storage.sql`.
+- `database/migrations/`: perubahan schema yang perlu diterapkan secara eksplisit, termasuk `001_mini_event_management_mysql.sql`.
 - `app-php/`: aplikasi PHP.
 - `mini-event-management/app-next/`: aplikasi Next.js.
 
