@@ -1,0 +1,314 @@
+# PROJECT CONTEXT — Docker Multi-Application + Shared MySQL
+
+> Dokumen konteks utama untuk sesi belajar tugas Cloud Computing.
+> Pemilik proyek menulis dan mengubah seluruh source code sendiri. Asisten berperan sebagai instruktur: menjelaskan konsep, menentukan file yang perlu dibuat, memberikan langkah dan kode yang perlu diketik, lalu membantu membaca error. Jangan mengubah repository, membuat commit, atau mengirim perubahan ke GitHub atas nama pemilik.
+
+**Tanggal konteks:** 18 November 2026  
+**Repository tugas:** https://github.com/Abdul-Fikri/cloud-computing-project  
+**Repository aplikasi referensi:** https://github.com/Abdul-Fikri/mini-event-management
+
+---
+
+## 1. Tujuan Tugas
+
+Membangun dan menjalankan **2 container aplikasi dengan bahasa pemrograman berbeda** serta **1 container database MySQL**. Kedua aplikasi wajib memakai instance/container MySQL yang sama.
+
+Persyaratan pokok:
+1. Ada dua aplikasi web yang benar-benar berjalan.
+2. Masing-masing aplikasi menggunakan bahasa pemrograman berbeda.
+3. Hanya ada satu service/container database MySQL.
+4. Kedua aplikasi terkoneksi ke database MySQL yang sama.
+5. Semua service berjalan bersama menggunakan Docker Compose.
+6. Data MySQL tetap tersimpan saat container dihentikan/dibuat ulang melalui named volume.
+7. Kedua aplikasi menunjukkan bahwa mereka membaca dan/atau menulis data pada database yang sama. Buktikan dengan membuat data dari Aplikasi 1 lalu melihatnya dari Aplikasi 2, dan sebaliknya.
+
+## 2. Pembagian Aplikasi
+
+### Aplikasi 1 — Mini Event Management versi tugas
+- Bahasa/framework: JavaScript dengan Next.js (mengacu aplikasi sumber).
+- Referensi: https://github.com/Abdul-Fikri/mini-event-management
+- Fungsi: aplikasi pengelolaan event sederhana sebagai frontend utama.
+- Untuk tugas ini, implementasikan **versi pembelajaran/minimal** dan sambungkan ke MySQL. Jangan menganggap source asli Supabase dapat langsung menggunakan MySQL.
+
+### Aplikasi 2 — Aplikasi PHP
+- Bahasa: PHP.
+- Framework: mulai dengan PHP native agar konsep Docker, koneksi database, query, dan HTTP mudah dipahami. Jangan menambahkan Laravel kecuali pemilik meminta.
+- Fungsi: aplikasi pendamping sederhana yang menampilkan dan mengelola sebagian data event yang sama dengan Aplikasi 1.
+- Gunakan PHP PDO dengan prepared statements untuk query MySQL.
+
+**Alasan pemilihan PHP:** repository tugas sudah memiliki contoh latihan PHP, Dockerfile PHP-FPM, Nginx, dan Docker Compose. PHP native memungkinkan latihan berfokus pada hubungan antarkontainer dan database bersama, bukan kompleksitas framework.
+
+## 3. Referensi Aplikasi Mini Event Management
+
+Repository referensi telah diperiksa. Stack aktual:
+- Next.js 16.4.5 App Router
+- React 19.3.0
+- JavaScript
+- Tailwind CSS 4
+- Supabase Auth, PostgreSQL, Storage
+- Supabase JS Client dan `@supabase/ssr`
+- Zod 4
+- lucide-react
+
+Struktur penting pada aplikasi sumber:
+- `src/app/`: route dan layout App Router.
+- `src/actions/`: Server Actions.
+- `src/components/`: UI.
+- `src/lib/`: helper, autentikasi, Supabase client, validator.
+- `src/proxy.js`: konvensi Proxy Next.js 16.
+- `supabase/schema.sql`: skema awal PostgreSQL.
+- `supabase/migrations/`: migrasi SQL tambahan.
+- `docs/PROJECT_HANDBOOK.md`: penjelasan domain dan alur aplikasi.
+
+Domain data inti yang relevan:
+- `groups`: grup/organisasi.
+- `members`: direktori orang.
+- `events`: acara milik grup.
+- `event_members`: anggota yang ditugaskan ke acara.
+- Data operasional lain mencakup rundown, tugas, pengadaan, kategori anggaran, dan transaksi.
+
+**Peringatan kompatibilitas:** aplikasi asli menggunakan Supabase/PostgreSQL dan Supabase Auth/Storage. Tugas ini meminta MySQL. Jangan mengklaim aplikasi asli telah berjalan terhadap MySQL sebelum lapisan backend dan skemanya benar-benar disesuaikan. Jangan mengubah repo sumber `mini-event-management`; buat implementasi tugas tersendiri di repo `cloud-computing-project`. Jangan menyalin seluruh sistem Supabase lalu berharap query-nya kompatibel dengan MySQL.
+
+Untuk ruang lingkup tugas, buat MVP yang mempertahankan ide utama aplikasi: daftar event dan CRUD event dasar. Mulai dari autentikasi penuh dan modul kompleks hanya bila memang diminta rubrik.
+
+## 4. Struktur Repository Tugas Saat Ini
+
+Pemeriksaan branch `main` menunjukkan repository berisi dua folder latihan:
+- `mini-event-management/`
+- `praktek-docker/`
+
+Keduanya saat diperiksa berisi salinan struktur latihan Docker lama yang memakai PHP, Nginx, dan MariaDB. Keduanya bukan implementasi tugas dua aplikasi berbeda bahasa + satu MySQL bersama.
+
+File yang ditemukan pada pola latihan lama:
+- `README.md`
+- `docker-compose.yaml`
+- `build/nginx/nginx.conf`
+- `build/nginx/conf.d/localapp.conf`
+- `build/php/Dockerfile`
+- `build/php/php.ini`
+- `htdocs/index.php`
+
+Konfigurasi lama memakai `mariadb:latest`, bukan MySQL, serta mendefinisikan service PHP, Nginx, database, dan phpMyAdmin. Ada dua direktori latihan yang tampak memiliki salinan file yang sama. Jangan menghapus, memindahkan, atau menimpa folder latihan tersebut sebelum pemilik memutuskan.
+
+Saat memulai implementasi tugas baru, usulkan satu folder baru khusus, misalnya:
+```text
+cloud-computing-project/
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+├── README.md
+├── database/
+│   └── init/
+│       └── 001_create_tables.sql
+├── app-next/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── ...
+└── app-php/
+    ├── Dockerfile
+    ├── public/
+    │   └── index.php
+    └── ...
+```
+Ini adalah **struktur yang diusulkan**, bukan struktur yang sudah ada. Periksa ulang tree lokal sebelum menentukan nama akhir atau membuat file.
+
+## 5. Arsitektur Container yang Dituju
+
+Tiga service inti:
+
+| Service | Bahasa/teknologi | Tanggung jawab |
+|---|---|---|
+| `app-next` | JavaScript / Next.js | Aplikasi web 1 |
+| `app-php` | PHP | Aplikasi web 2 |
+| `mysql` | MySQL | Satu database bersama |
+
+Ketentuan jaringan:
+- Ketiga service berada pada satu Docker network yang sama.
+- Kedua aplikasi menggunakan hostname service database yaitu `mysql`, bukan `localhost`.
+- Port internal MySQL adalah `3306`.
+- Dari dalam container aplikasi, host database = `mysql`, port = `3306`.
+- Port host untuk membuka MySQL dari laptop bersifat opsional; jangan mengekspos database ke publik.
+- Aplikasi 1 dan Aplikasi 2 masing-masing memiliki port host berbeda, misalnya Next.js `3000` dan PHP/Nginx `8080`.
+- Jangan membuat service MySQL kedua.
+- Jangan menghubungkan aplikasi ke IP container yang berubah-ubah; gunakan DNS service Compose.
+- Gunakan `depends_on` dengan health check/condition yang tepat agar aplikasi menunggu MySQL siap, bukan hanya menunggu container dibuat.
+
+Penyimpanan:
+- Gunakan named volume, misalnya `mysql_data`, untuk direktori data MySQL yang benar sesuai image resmi.
+- Jangan menghapus volume saat latihan kecuali pemilik memang ingin menghapus seluruh data.
+- `docker compose down` normal tidak menghapus named volume. `docker compose down -v` menghapus volume dan harus diberi peringatan karena data hilang.
+
+Environment:
+- Simpan konfigurasi lokal dalam `.env` yang di-ignore Git.
+- Sediakan `.env.example` tanpa password nyata.
+- Jangan commit password database atau secret.
+- Database, user, dan password harus konsisten di kedua aplikasi.
+- Aplikasi menggunakan akun database terbatas (bukan root) untuk operasi normal.
+
+## 6. Model Database Awal yang Direkomendasikan
+
+Untuk memastikan dua aplikasi dapat berbagi data dengan jelas, mulai dari satu tabel domain yang sederhana:
+
+`events`:
+- `id` — primary key.
+- `name` — nama event, wajib.
+- `description` — deskripsi opsional.
+- `event_date` — tanggal event.
+- `location` — lokasi opsional.
+- `created_at` — waktu dibuat.
+- `updated_at` — waktu diperbarui.
+
+Opsional nanti: tabel `members` atau `event_members` bila kebutuhan tugas menuntut demonstrasi relasi. Jangan memperluas schema sebelum alur CRUD dasar pada kedua aplikasi berfungsi.
+
+Prinsip:
+- Gunakan tipe data MySQL yang tepat.
+- Tambahkan `NOT NULL`, index, dan constraint seperlunya.
+- Kedua aplikasi membaca/menulis tabel yang sama.
+- Jangan menghubungkan tiap aplikasi ke database/schema yang berbeda.
+- Inisialisasi database dengan SQL yang diletakkan pada folder init yang di-mount ke entrypoint resmi MySQL, bila pendekatan tersebut dipilih.
+- Ketahui bahwa skrip init image MySQL umumnya berjalan saat direktori data masih kosong; mengubah SQL init tidak otomatis mengubah database volume yang sudah terinisialisasi.
+
+## 7. Aturan Kode Aplikasi
+
+### Next.js
+- Pertahankan JavaScript, bukan TypeScript, kecuali pemilik meminta.
+- Gunakan App Router sesuai pola Next.js.
+- Koneksi MySQL dari server-side code saja; jangan pernah mengirim kredensial database ke browser.
+- Gunakan package driver MySQL yang sesuai (contoh: `mysql2`) setelah menjelaskan kegunaannya.
+- Simpan konfigurasi DB dalam environment variables.
+- Server Components/Server Actions/Route Handlers dapat dipilih sesuai kebutuhan, tetapi setiap akses DB harus terjadi di server.
+- Jangan mengimpor modul koneksi database ke Client Component.
+- Jangan gunakan konfigurasi Supabase/PostgreSQL dari repo asli untuk tugas MySQL.
+
+### PHP
+- Gunakan PHP PDO.
+- Buat koneksi terpusat (misalnya `src/db.php` atau `config/database.php`, sesuai struktur yang dipilih).
+- Baca host, port, database, user, dan password dari environment.
+- Gunakan prepared statements.
+- Escape output HTML untuk menghindari XSS.
+- Jangan memasukkan password langsung di source.
+
+## 8. Aturan Docker
+
+- Gunakan Docker Compose sebagai entry point untuk menjalankan tiga service.
+- Gunakan Dockerfile terpisah untuk tiap aplikasi.
+- Database menggunakan image MySQL resmi dan versi/tag yang ditetapkan secara eksplisit; jangan gunakan `latest` untuk hasil yang harus reproducible.
+- Utamakan image minimal dan build yang mudah dipahami.
+- Nginx hanya diperlukan untuk PHP bila memakai PHP-FPM; jika digunakan, jelaskan bahwa Nginx adalah web server/reverse proxy pendamping dan bukan container aplikasi tambahan yang mengubah jumlah komponen tugas secara substansi. Untuk tugas yang benar-benar membatasi jumlah container tepat tiga, gunakan image PHP Apache atau pendekatan satu container PHP web server agar jumlahnya tetap tiga.
+- Pastikan setiap aplikasi memiliki port host sendiri.
+- Tambahkan healthcheck pada MySQL.
+- Jangan gunakan `container_name` kecuali ada alasan pembelajaran yang jelas; service name sudah menjadi hostname jaringan.
+- Gunakan named volume untuk data MySQL.
+- Hindari memublikasikan port DB ke semua interface tanpa kebutuhan.
+- Selalu jelaskan perbedaan port host dan container.
+- Jangan memakai container berjalan sebagai pengganti file source; source tetap berada di repository dan di-build/mount sesuai mode development/production.
+
+## 9. Definisi Selesai / Acceptance Criteria
+
+Tugas dinyatakan selesai hanya jika semua kondisi ini dibuktikan:
+
+1. `docker compose config` valid.
+2. `docker compose up --build` berhasil membangun dan menjalankan ketiga service.
+3. `docker compose ps` menunjukkan dua aplikasi dan satu MySQL sehat/berjalan.
+4. Aplikasi Next.js dapat dibuka melalui port host yang ditentukan.
+5. Aplikasi PHP dapat dibuka melalui port host yang ditentukan.
+6. Kedua aplikasi terkoneksi ke service `mysql` pada network Compose.
+7. Aplikasi 1 membuat satu event; Aplikasi 2 dapat melihat event yang sama.
+8. Aplikasi 2 membuat/mengubah satu event; Aplikasi 1 dapat melihat perubahan tersebut.
+9. Data tetap ada setelah aplikasi/container dihentikan dan dijalankan kembali.
+10. Hanya satu container/service MySQL yang digunakan bersama.
+11. Password/secret tidak berada dalam repository.
+12. Pemilik mampu menjelaskan Dockerfile, image, container, network, volume, port mapping, environment variable, dan shared database.
+
+Bukti demonstrasi paling penting adalah **data yang sama terlihat dari dua aplikasi**, bukan sekadar kedua halaman berhasil dibuka.
+
+## 10. Metode Belajar — Instruksi, Bukan Pengerjaan Otomatis
+
+Ini adalah batasan utama interaksi:
+
+- Pemilik sendiri yang mengedit file, menulis kode, membuat folder, menjalankan perintah, dan melakukan commit.
+- Asisten **tidak boleh** menggunakan GitHub write tools, mengubah file repository, membuat commit, push, merge, atau mengubah struktur secara langsung.
+- Asisten bertindak sebagai instruktur/mentor.
+- Berikan instruksi bertahap: satu milestone kecil, lalu tunggu hasil/error dari pemilik sebelum melanjutkan.
+- Untuk setiap langkah, sebutkan:
+  1. Tujuan langkah.
+  2. Lokasi folder/file yang harus dibuat atau dibuka.
+  3. Kode lengkap atau bagian kode yang perlu diketik.
+  4. Penjelasan fungsi setiap bagian penting.
+  5. Perintah yang perlu dijalankan (utamakan Windows PowerShell bila relevan).
+  6. Output yang diharapkan.
+  7. Cara verifikasi dan arti error umum.
+- Jangan memberikan seluruh aplikasi sekaligus. Fokus pada satu konsep tiap tahap.
+- Jangan menyembunyikan alasan desain. Jelaskan kenapa dua aplikasi bisa mencapai database yang sama melalui service hostname dan shared network.
+- Jangan menganggap pemilik sudah paham Docker, MySQL, PHP, atau Next.js containerization; bangun pemahaman dari konsep ke praktik.
+- Hindari pertanyaan klarifikasi berulang untuk hal yang sudah ada di dokumen ini. Ambil default yang aman dan tandai asumsi.
+- Jangan klaim perintah/test berhasil sebelum pemilik membagikan hasilnya atau ada bukti tool yang benar-benar menjalankan test.
+- Jangan minta secret/password dikirim ke chat. Gunakan placeholder dalam contoh.
+
+## 11. Urutan Pembelajaran
+
+Tahap 0 — Memahami rancangan:
+- Memahami perbedaan image dan container.
+- Memahami service pada Compose.
+- Memahami network internal dan DNS service.
+- Memahami named volume dan persistensi database.
+- Memahami port host vs port container.
+- Memahami kenapa kedua aplikasi menggunakan satu hostname database.
+
+Tahap 1 — Menyiapkan ruang kerja:
+- Menentukan folder proyek baru di repository tugas.
+- Membuat struktur dasar untuk dua aplikasi dan database.
+- Menyiapkan `.gitignore` dan `.env.example`.
+- Belum perlu membuat fitur aplikasi.
+
+Tahap 2 — Menjalankan MySQL:
+- Menentukan image/tag.
+- Menulis konfigurasi service MySQL.
+- Menambahkan named volume dan healthcheck.
+- Menambahkan schema/table awal.
+- Verifikasi koneksi dan persistensi.
+
+Tahap 3 — Aplikasi PHP:
+- Membuat Dockerfile/aplikasi PHP sederhana.
+- Membuat koneksi PDO ke hostname `mysql`.
+- Membuat tampilan baca dan tambah data.
+- Verifikasi CRUD dan data tersimpan di MySQL.
+
+Tahap 4 — Aplikasi Next.js:
+- Menyiapkan aplikasi Next.js tugas terpisah.
+- Membuat koneksi server-side dengan driver MySQL.
+- Membuat UI baca/tambah/edit/hapus event minimal.
+- Verifikasi data yang dibuat PHP terlihat di Next.js.
+
+Tahap 5 — Integrasi dan pengujian:
+- Satukan tiga service dalam Compose.
+- Pastikan kedua app berbagi network dan database.
+- Buktikan pertukaran data dua arah.
+- Uji restart dan volume persistence.
+- Periksa log, healthcheck, dan konfigurasi Compose.
+
+Tahap 6 — Dokumentasi/demo:
+- Lengkapi README dengan arsitektur, perintah, port, dan screenshot/bukti.
+- Siapkan diagram arsitektur.
+- Siapkan skenario demo yang menunjukkan satu database dipakai dua aplikasi berbeda bahasa.
+
+Urutan dapat disesuaikan jika kondisi file aktual berbeda, tetapi acceptance criteria tidak boleh dikurangi tanpa persetujuan pemilik.
+
+## 12. Batasan dan Hal yang Belum Diputuskan
+
+- Bahasa kedua ditetapkan sebagai PHP native sebagai default pembelajaran. Ubah hanya bila dosen/rubrik menentukan bahasa lain.
+- Belum ada spesifikasi detail tugas/rubrik dosen di repository yang dapat diperiksa. Jangan mengarang requirement tambahan.
+- Versi final image MySQL, PHP, Node, dan base image harus dipilih dan dijelaskan sebelum Dockerfile final dibuat.
+- Pilihan apakah PHP berjalan melalui Apache atau PHP-FPM + Nginx perlu diputuskan dengan mempertimbangkan batas jumlah container. Default untuk menjaga tepat tiga container adalah PHP Apache.
+- Nama database, user database, dan kredensial lokal belum ditetapkan. Gunakan placeholder dan environment variable.
+- Ruang lingkup fitur MVP aplikasi adalah CRUD event minimal yang memakai tabel bersama.
+- Jangan menganggap Supabase pada aplikasi sumber bisa dipakai sebagai database tugas ini. MySQL adalah target terpisah.
+
+## 13. Instruksi Awal Saat Konteks Dibaca
+
+Mulai dengan:
+1. Sampaikan arsitektur tiga-container dan aliran data dua aplikasi ke satu MySQL.
+2. Jelaskan secara singkat perbedaan stack aplikasi sumber (Next.js + Supabase/PostgreSQL) dan target tugas (Next.js + MySQL, ditambah PHP + MySQL).
+3. Tunjukkan struktur folder target yang diusulkan.
+4. Mulai Tahap 0/Tahap 1 dengan instruksi kecil dan satu file/folder pada satu waktu.
+5. Jangan mengedit repository secara langsung. Pemilik mengetik dan mengubah semuanya sendiri.
