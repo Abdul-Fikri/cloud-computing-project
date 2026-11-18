@@ -722,3 +722,26 @@ Temuan tambahan:
 - Belum ada build setelah batch migrasi terbaru.
 - Belum ada validasi integrasi pada volume lama atau fresh volume.
 - Belum boleh merge, menjalankan migrasi database, atau menyatakan seluruh aplikasi selesai.
+
+
+### 18.11 Penyatuan kontrak tabel event untuk PHP dan Next.js — 18 November 2026
+
+Perubahan source pada branch `feat/nextjs-shared-mysql`:
+
+- Skrip init untuk volume MySQL baru sekarang menggunakan schema Mini Event Management lengkap dari migration 001, bukan lagi membuat tabel demo `events` dengan ID auto-increment dan `event_date`.
+- PHP diarahkan ke kolom schema utama: `id` UUID, `group_id`, `start_date`, `name`, `description`, dan `location`.
+- PHP membaca dan menulis event hanya pada grup yang ditentukan melalui `PHP_DEFAULT_GROUP_ID`.
+- Endpoint Next.js `/api/docker-events` juga menggunakan tabel `events` yang sama dan membatasi operasi ke group ID yang sama. Field `start_date` dipetakan sebagai `event_date` pada response agar UI demo tetap kompatibel.
+- `.env.example` dan README menjelaskan konfigurasi group ID.
+
+Konfigurasi yang diperlukan:
+1. Buat akun Owner dan grup melalui aplikasi Next.js.
+2. Ambil ID grup dari database (tabel `groups`).
+3. Isi `PHP_DEFAULT_GROUP_ID` di file `.env` lokal dengan ID tersebut.
+4. Restart service aplikasi setelah konfigurasi berubah.
+
+Batasan validasi:
+- Perubahan ini belum dijalankan/build pada mesin pemilik.
+- Skrip init hanya berlaku pada volume MySQL baru. Volume aktif yang sebelumnya dibuat dengan tabel demo tidak berubah otomatis.
+- Belum ada migrasi upgrade untuk mengonversi tabel `events` lama beserta data existing. Jangan jalankan migration atau reset volume sebelum rencana backup dan konversi diuji.
+- PHP demo dan endpoint demo Next.js belum memiliki autentikasi pengguna. Group ID membatasi data yang disentuh, tetapi bukan kontrol akses yang cukup untuk deployment publik.
