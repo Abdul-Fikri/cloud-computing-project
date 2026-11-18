@@ -467,3 +467,16 @@ C:\\cloud-computing-1\\
 ```
 
 Catatan: struktur di atas adalah target konseptual; folder/file baru belum dibuat. Penempatan Dockerfile dan source aplikasi akan mengikuti pemeriksaan isi aktual kedua folder serta keputusan implementasi berikutnya. Tidak ada folder yang dipindahkan, dihapus, atau diubah pada keputusan ini.
+
+
+## 16. Penetapan Peran Dua Folder Aplikasi — 19 November 2026
+
+Pemilik menetapkan peran folder yang sudah tersedia untuk implementasi tugas:
+- `mini-event-management/` akan menjadi aplikasi 1 berbasis Next.js/JavaScript. Folder ini sebelumnya disalin dari `praktek-docker/`, sehingga isinya saat ini masih berupa latihan PHP. Isi PHP lama perlu ditangani secara hati-hati saat tahap migrasi; jangan menghapus atau menimpa sebelum inventarisasi dan persetujuan langkahnya.
+- `praktek-docker/` akan menjadi aplikasi 2 berbasis PHP dan dipertahankan sebagai aplikasi PHP.
+- `database/` di root akan menampung SQL inisialisasi/schema MySQL bersama.
+- `docker-compose.yml` di root akan mengorkestrasi service Next.js, PHP, dan satu MySQL.
+
+Pemilik juga menyediakan repository `mini-event-management` sebagai referensi aplikasi/domain Next.js. Repository referensi tersebut berbeda dari folder lokal `mini-event-management/` di workspace tugas; jangan menganggap folder lokal sudah berisi source Next.js hanya karena namanya sama.
+
+Ini adalah keputusan peran target, bukan klaim bahwa folder lokal sudah dimigrasikan. Sebelum perubahan implementasi, lakukan inventarisasi isi folder dan pastikan tidak ada file latihan yang perlu dipertahankan.
