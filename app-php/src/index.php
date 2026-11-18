@@ -35,7 +35,7 @@ if ($group && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $eventDate = trim($_POST['event_date'] ?? '');
     $location = trim($_POST['location'] ?? '');
 
-    if ($name === '' || mb_strlen($name) > 160 || $eventDate === '') {
+    if ($name === '' || preg_match_all('/./us', $name) > 160 || $eventDate === '') {
         $message = 'Nama event wajib diisi (maksimal 160 karakter) dan tanggal wajib dipilih.';
     } else {
         $date = DateTime::createFromFormat('!Y-m-d', $eventDate);
