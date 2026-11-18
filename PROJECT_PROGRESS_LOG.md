@@ -770,3 +770,14 @@ Rancangan upgrade yang didokumentasikan:
 7. Verifikasi jumlah baris legacy, mapping, dan hasil import.
 
 Migration 003 menggunakan tabel mapping berdasarkan ID numerik lama agar impor ulang tidak menggandakan event. Ini masih draft dan **belum diuji** pada MySQL 8.4 atau volume pemilik. Jangan jalankan sampai backup, schema, dan urutan migrasi diuji di salinan database.
+
+
+### 18.14 Koreksi validitas schema MySQL — 18 November 2026
+
+Audit menemukan dua potensi masalah sebelum database dijalankan:
+- Foreign key komposit procurement ke budget category memakai `ON DELETE SET NULL`, padahal kolom `event_id` pada FK tersebut wajib NOT NULL. Diubah menjadi `ON DELETE RESTRICT` agar kategori yang masih dipakai tidak dapat dihapus diam-diam.
+- Skrip init volume baru sebelumnya belum tersinkron dengan koreksi migration 001. Sekarang isi init disalin persis dari migration 001 yang telah dikoreksi.
+
+Migration 002 untuk logo dihapus karena kolom `logo_mime` dan `logo_data` sudah menjadi bagian schema 001; menjalankan ALTER TABLE lama akan menghasilkan duplicate column. README dibersihkan dari referensi migration 002.
+
+Belum ada eksekusi SQL pada database lokal. Validasi runtime MySQL 8.4 masih menjadi pekerjaan berikutnya.
