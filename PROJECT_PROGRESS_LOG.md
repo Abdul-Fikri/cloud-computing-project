@@ -538,3 +538,54 @@ cloud-computing-project/
 4. Jangan menghapus named volume atau data database.
 5. Perubahan dokumentasi boleh dilakukan langsung di branch `main`; perubahan implementasi tetap mengikuti pembagian kerja yang disepakati.
 
+
+
+---
+
+## 18. Migrasi penuh Mini Event Management ke MySQL — 18 November 2026
+
+### Arahan pemilik
+
+Pemilik menegaskan bahwa repository tugas adalah salinan kerja yang terpisah dari repository production. Karena itu, aplikasi Mini Event Management di repository tugas boleh dimigrasikan dari Supabase/PostgreSQL ke MySQL. Repository production `Abdul-Fikri/mini-event-management` tidak boleh diubah.
+
+Izin kerja diperbarui: asisten boleh mengerjakan source code aplikasi Next.js dan dokumentasi pada branch `feat/nextjs-shared-mysql`, termasuk perubahan lapisan database dan autentikasi untuk kebutuhan migrasi. Jangan mengubah `main`, membuat PR, atau merge sebelum implementasi dan pengujian selesai.
+
+### Audit awal branch tugas
+
+Branch yang diperiksa: `feat/nextjs-shared-mysql`.
+
+Temuan:
+- Aplikasi utama berada di `mini-event-management/app-next`.
+- Stack saat ini Next.js 16, React 19, JavaScript, Supabase SSR/JS, dan mysql2.
+- Koneksi MySQL server-side sudah tersedia pada `src/lib/mysql.js`.
+- Aplikasi utama masih menggunakan Supabase pada autentikasi, proxy/session, Server Actions, query Server Components, RPC, dan Storage.
+- Skema PostgreSQL sumber memiliki 10 tabel domain: `groups`, `members`, `events`, `event_divisions`, `event_members`, `schedule_items`, `tasks`, `procurement_items`, `budget_categories`, dan `transactions`.
+- Fitur undangan anggota menambahkan `member_invitations` dan relasi akun pada `members.auth_user_id`.
+- Logo grup menggunakan Supabase Storage; migrasi harus menyediakan pengganti yang kompatibel dengan arsitektur tiga service.
+- PHP sudah menggunakan database MySQL yang sama untuk tabel demo `events`.
+
+### Implementasi yang sudah dicatat pada branch
+
+1. Ditambahkan `database/migrations/001_mini_event_management_mysql.sql` sebagai draft schema MySQL untuk tabel autentikasi/session dan domain aplikasi. ID domain tetap menggunakan UUID string CHAR(36) agar URL/form identifier tidak perlu berubah.
+2. Relasi nullable yang pada PostgreSQL menggunakan partial `ON DELETE SET NULL` disesuaikan menjadi foreign key nullable satu kolom karena MySQL tidak mendukung partial SET NULL pada foreign key komposit.
+3. Ditambahkan README root yang menjelaskan target arsitektur, cakupan migrasi, status sebenarnya, dan kehati-hatian terhadap named volume.
+
+### Status validasi
+
+- File schema baru **belum** diuji dengan MySQL 8.4.
+- Schema baru **belum** diterapkan ke volume lokal yang sudah berisi data demo.
+- Aplikasi utama **belum** dimigrasikan; ketergantungan Supabase masih ada pada source code.
+- Build Docker yang pernah berhasil hanya membuktikan build halaman demo sebelumnya, bukan seluruh aplikasi utama.
+- Jangan menjalankan `docker compose down -v`; jangan menghapus volume untuk memaksa skrip init berjalan.
+- Migrasi schema untuk volume existing harus dirancang sebagai langkah additive/backup-first, khususnya karena tabel `events` demo yang sudah ada memiliki struktur sederhana dan berbeda dari model event penuh.
+
+### Pekerjaan berikutnya
+
+1. Verifikasi dan koreksi schema MySQL dengan MySQL 8.4, termasuk constraint/trigger dan kompatibilitas tabel `events` yang sudah ada.
+2. Implementasikan autentikasi MySQL (register, login, logout, cookie session hash, expiry, CSRF/same-site, dan pembatasan akses).
+3. Migrasikan fungsi pembacaan identitas Owner/Panitia dan guard route.
+4. Migrasikan seluruh Server Actions dan query halaman dari Supabase ke SQL prepared statements.
+5. Ganti RPC procurement-finance dan division synchronization dengan transaksi/layanan server-side MySQL.
+6. Ganti Supabase Storage logo dengan penyimpanan yang tidak menambah service Docker.
+7. Jalankan build dan pengujian fitur, kemudian verifikasi PHP ↔ Next.js pada tabel domain yang sama.
+8. Perbarui dokumentasi dan skenario demo setelah validasi selesai.
