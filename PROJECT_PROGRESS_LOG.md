@@ -400,3 +400,32 @@ Status: scaffold Next.js sudah berhasil dibuat dan development server menyala. B
 Catatan: jangan menghentikan process ID 3684 atau aplikasi lain yang menggunakan port 3000 sebelum diketahui fungsinya. Untuk sementara gunakan `http://localhost:3001` untuk memeriksa halaman Next.js.
 
 Langkah berikutnya: buka URL lokal port 3001 di browser dan konfirmasi halaman tampil. Setelah itu, hentikan development server dengan `Ctrl+C` sebelum melanjutkan pemeriksaan file/config atau integrasi Docker. Jangan jalankan dua development server bersamaan.
+
+
+## 19 November 2026 — Pemeriksaan direktori Next.js
+
+Pemilik membagikan output `dir` dari `mini-event-management/` setelah menjalankan Next.js dev server/build preparation.
+
+Item yang terlihat di root aplikasi:
+- `.gitignore`
+- `.next/`
+- `AGENTS.md`
+- `eslint.config.mjs`
+- `jsconfig.json`
+- `next.config.mjs`
+- `node_modules/`
+- `package-lock.json`
+- `package.json`
+- `public/`
+- `README.md`
+- `src/`
+
+Isi `src/app/` yang terlihat:
+- `favicon.ico`
+- `globals.css`
+- `layout.js`
+- `page.js`
+
+Catatan: keberadaan `.next/` menunjukkan direktori output/cache Next.js telah dibuat, tetapi output ini sendiri tidak membuktikan `npm run build` berhasil. Pemilik belum mengirim hasil perintah `npm run build`; status production build masih belum diverifikasi. File `AGENTS.md` terdeteksi tetapi belum dibaca.
+
+Langkah berikutnya: jalankan `npm run build` dari folder `mini-event-management/` dan kirim seluruh output akhir, terutama ringkasan route atau pesan error. Tidak ada perubahan source/config yang dilakukan.
