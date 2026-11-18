@@ -796,3 +796,26 @@ Pemeriksaan file terpilih pada source Next.js menunjukkan:
 Audit ini mencakup file-file utama yang dipilih, bukan bukti bahwa seluruh 118 file sudah bebas dari semua referensi Supabase. Paket `@supabase/*` dan file helper lama belum dibersihkan karena lockfile belum diregenerasi; belum ditemukan jalur runtime utama yang masih memakainya pada file yang diperiksa.
 
 **Belum dilakukan:** npm ci/build, lint, eksekusi schema pada MySQL 8.4, uji CRUD end-to-end setelah migrasi, dan uji upgrade volume lama. Semua tetap perlu dilakukan sebelum PR/merge.
+
+
+### 18.16 Audit dependency, autentikasi, API, dan konfigurasi build — 18 November 2026
+
+Pemeriksaan lanjutan pada branch tugas:
+
+- `src/proxy.js` hanya meneruskan request dan tidak menginisialisasi Supabase. Guard autentikasi MySQL berada pada server-side helpers/actions.
+- `mysql-auth.js` menyimpan hash token session (SHA-256), token acak 32-byte hanya berada di cookie HttpOnly, cookie memakai SameSite=Lax, dan masa berlaku session tujuh hari.
+- Password disimpan dengan scrypt + salt acak; validasi login membandingkan hash dengan `timingSafeEqual`.
+- API ekspor CSV membatasi event berdasarkan grup Owner dan menetralkan awalan formula spreadsheet pada nilai CSV.
+- API logo grup sudah memerlukan session dan keanggotaan/ownership sebelum mengirim data logo.
+- Health endpoint hanya mengembalikan status koneksi generik, bukan detail kredensial.
+- Dockerfile memakai multi-stage build, `npm ci`, Next standalone output, dan runtime non-root.
+- Compose tetap tepat tiga service inti: Next.js, PHP/Apache, dan MySQL pada satu bridge network; kedua aplikasi memakai host database `mysql` dan named volume `mysql_data`.
+
+Temuan yang masih perlu dibereskan/diuji:
+
+- `package.json` dan `package-lock.json` masih mencantumkan `@supabase/ssr` dan `@supabase/supabase-js`. Keduanya belum dihapus karena lockfile harus diregenerasi secara konsisten; mengedit `package.json` saja akan membuat `npm ci` gagal.
+- Folder helper `src/lib/supabase/` masih ada. Pemeriksaan saat ini belum membuktikan seluruh 120 file source bebas dari import/referensi Supabase; jangan menghapus helper sebelum pencarian menyeluruh.
+- `next.config.mjs` masih memiliki konfigurasi remote image Supabase Storage yang tampaknya merupakan sisa konfigurasi lama. Perlu verifikasi pemakaian `next/image` sebelum dibersihkan.
+- Pemeriksaan source bukan pengganti runtime validation. Belum ada hasil `npm ci`, ESLint, `next build`, PHP lint, Docker Compose build, atau tes integrasi setelah migrasi.
+
+Tidak ada SQL dijalankan dan tidak ada volume database yang diubah. Branch produksi tetap tidak disentuh. PR/merge tetap ditahan sampai validasi lokal dan upgrade database dilakukan dengan backup yang terverifikasi.
