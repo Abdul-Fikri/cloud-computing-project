@@ -43,6 +43,24 @@ services:
     networks:
       - shared-network
 
+  app-next:
+    build:
+      context: ./mini-event-management/app-next
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - shared-network
 
 volumes:
   mysql_data:
