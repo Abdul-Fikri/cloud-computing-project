@@ -2,7 +2,7 @@
 
 Repository tugas Cloud Computing. Versi target menjalankan aplikasi Mini Event Management (Next.js), aplikasi PHP, dan satu MySQL bersama melalui Docker Compose.
 
-> **Status migrasi:** sedang dikerjakan. Source aplikasi utama sudah banyak dialihkan ke MySQL, tetapi build dan pengujian end-to-end setelah batch migrasi terbaru belum selesai. Demo lintas aplikasi kini memakai schema event utama yang sama; belum diuji ulang pada schema final ini.
+> **Status migrasi:** source aplikasi utama telah dialihkan ke MySQL untuk alur Owner/Panitia, fitur domain, dan penyimpanan logo. GitHub Actions pada commit `9156e10` telah lulus untuk `npm ci`, ESLint, build Next.js, PHP syntax, dan validasi Docker Compose. Perubahan sesudahnya juga sedang divalidasi CI. Pengujian end-to-end Docker dan verifikasi upgrade volume MySQL lama masih belum dilakukan.
 
 ## Target arsitektur
 
@@ -15,7 +15,7 @@ Repository tugas Cloud Computing. Versi target menjalankan aplikasi Mini Event M
 
 Autentikasi Owner/Panitia, onboarding grup, event, anggota dan susunan panitia, divisi, rundown, tugas, pengadaan, kategori anggaran, transaksi keuangan, undangan anggota, serta logo grup.
 
-UI dan validasi aplikasi dipertahankan sejauh memungkinkan. Jalur utama autentikasi, query domain, dan penyimpanan logo sudah dialihkan ke MySQL/server-side. Audit sisa referensi Supabase, build, dan pengujian fitur menyeluruh masih berlangsung.
+UI dan validasi aplikasi dipertahankan sejauh memungkinkan. Jalur utama autentikasi, query domain, dan penyimpanan logo sudah dialihkan ke MySQL/server-side. Audit sisa file/dependensi Supabase dan pengujian fitur menyeluruh masih berlangsung.
 
 ## Struktur penting
 
@@ -47,7 +47,7 @@ Jangan mengekspos aplikasi demo ini ke internet publik tanpa menambahkan autenti
 
 Skrip pada `database/init/` hanya dijalankan otomatis oleh image MySQL ketika direktori data masih kosong. Untuk volume yang sudah pernah dipakai, perubahan schema harus diterapkan sebagai migrasi terencana setelah backup; menambahkan file init baru tidak otomatis mengubah volume lama.
 
-Schema domain MySQL untuk migrasi aplikasi tersedia di `database/migrations/001_mini_event_management_mysql.sql` dan juga menjadi skrip init untuk volume baru. File init lama yang membuat tabel demo dengan ID numerik telah dihapus agar tidak mendahului schema domain. Schema masih perlu diuji pada MySQL 8.4. Volume lama tidak akan berubah otomatis.
+Schema domain MySQL untuk migrasi aplikasi tersedia di `database/migrations/001_mini_event_management_mysql.sql` dan juga menjadi skrip init untuk volume baru. File init lama yang membuat tabel demo dengan ID numerik telah dihapus agar tidak mendahului schema domain. Build aplikasi dan validasi Compose telah lulus CI, tetapi schema serta alur migrasi data masih perlu diverifikasi pada MySQL 8.4 lokal. Volume lama tidak akan berubah otomatis.
 
 ### Upgrade volume lama yang masih memakai tabel demo
 
@@ -66,13 +66,10 @@ Script 003 memakai tabel mapping agar impor yang dijalankan ulang tidak membuat 
 
 ## Status dan rencana
 
-1. Audit skema dan ketergantungan Supabase.
-2. Siapkan schema MySQL domain dan autentikasi.
-3. Implementasikan autentikasi/session MySQL.
-4. Migrasikan seluruh Server Actions dan query Server Components.
-5. Ganti Supabase Storage untuk logo grup.
-6. Pastikan PHP dan Next.js memakai tabel MySQL yang sama.
-7. Build, uji fitur, uji keamanan akses data, dan uji persistensi.
-8. Lengkapi dokumentasi serta bukti demo.
+1. Selesaikan audit sisa referensi/file Supabase dan konsistensi dokumentasi.
+2. Selesaikan review keamanan route, session, dan pembatasan data per grup.
+3. Jalankan pengujian end-to-end pada Docker lokal tanpa menghapus volume.
+4. Verifikasi persistensi dan alur event PHP ↔ Next.js.
+5. Lengkapi dokumentasi serta bukti demo.
 
 Lihat `PROJECT_PROGRESS_LOG.md` dan `PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md` untuk catatan detail.
