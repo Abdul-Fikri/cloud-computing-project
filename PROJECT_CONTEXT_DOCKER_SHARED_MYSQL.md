@@ -1,5 +1,61 @@
 # PROJECT CONTEXT — Docker Multi-Application + Shared MySQL
 
+## 0. SUMBER KEBENARAN TERKINI — 18 NOVEMBER 2026
+
+Bagian ini adalah ringkasan kondisi aktual terbaru repository tugas berdasarkan file yang dibaca langsung dari branch `main`. Jika catatan historis di bawahnya berbeda, **bagian ini yang berlaku**.
+
+### Repository dan batas proyek
+- Repository tugas: `Abdul-Fikri/cloud-computing-project`, branch `main`.
+- Repository `Abdul-Fikri/mini-event-management` adalah aplikasi produksi/referensi dan **tidak boleh diubah** untuk pekerjaan tugas ini.
+- Semua pekerjaan Docker, MySQL, PHP, dan aplikasi Next.js tugas berada di repository `cloud-computing-project`.
+- Jangan meminta pemilik mengulang inventarisasi yang sudah tercatat atau mengulang instalasi dependency tanpa bukti memang diperlukan.
+
+### Struktur implementasi yang sudah terverifikasi di GitHub `main`
+```text
+cloud-computing-project/
+├── app-php/
+│   ├── Dockerfile
+│   └── src/
+│       ├── db.php
+│       └── index.php
+├── database/
+│   └── init/
+│       └── 001_create_tables.sql
+├── docker-compose.yml
+├── .gitignore
+├── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
+└── PROJECT_PROGRESS_LOG.md
+```
+
+File yang diperiksa langsung:
+- `docker-compose.yml`: mendefinisikan service `mysql` dan `app-php`, network `shared-network`, serta named volume `mysql_data`. **Service `app-next` belum ada dalam Compose di branch main saat pemeriksaan ini.**
+- `app-php/Dockerfile`: menggunakan `php:8.4-apache` dan memasang `pdo_mysql`.
+- `app-php/src/db.php`: koneksi PDO membaca `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, dan `DB_PASSWORD` dari environment.
+- `app-php/src/index.php`: form membuat event dengan prepared statement dan menampilkan daftar event.
+- `database/init/001_create_tables.sql`: membuat tabel `events` dengan kolom `id`, `name`, `description`, `event_date`, `location`, `created_at`, dan `updated_at`.
+- `.gitignore`: mengabaikan `.env` dan file environment lokal serta folder data MySQL.
+
+### Status implementasi terkini
+| Komponen | Status |
+|---|---|
+| MySQL 8.4 + named volume + healthcheck | Konfigurasi ada di Compose; pemilik telah menjalankan dan memverifikasi database secara lokal |
+| Skema tabel `events` | SQL init ada; tabel telah diverifikasi oleh pemilik |
+| PHP 8.4 Apache | Source dan Dockerfile ada; pemilik telah menjalankan aplikasi di port host 8080 |
+| PHP → MySQL | Koneksi PDO, insert, dan pembacaan event telah berhasil dikonfirmasi pemilik |
+| Next.js tugas | Belum tercatat sebagai folder `app-next/` di branch `main`; jangan membuat ulang scaffold secara otomatis |
+| Next.js → MySQL | Belum terintegrasi/terverifikasi pada repo tugas |
+| Pertukaran data dua arah | Belum selesai; masih menjadi milestone integrasi berikutnya |
+
+Catatan penting:
+- Riwayat sebelumnya menyebut folder `praktek-docker/`, folder latihan `mini-event-management/`, dan clone aplikasi produksi di workspace lokal. Itu adalah konteks historis; jangan menyamakan folder-folder tersebut dengan `app-php/` atau `app-next/` pada struktur tugas saat ini.
+- Catatan lokal bahwa Next.js scaffold dan `node_modules` sudah tersedia harus dihormati. Sebelum menyarankan instalasi atau generator, periksa file/folder yang sudah ada atau minta output spesifik hanya jika benar-benar belum dapat diverifikasi.
+- Jangan menjalankan `docker compose down -v`, menghapus volume, mengubah kredensial, atau mengubah konfigurasi Docker milik pemilik tanpa instruksi eksplisit.
+- Pemilik mengerjakan sendiri konfigurasi Docker/Compose, environment, MySQL, dan PHP. Bantuan source Next.js harus tetap berada di repo tugas dan tidak boleh menyentuh repo produksi.
+- Asisten boleh memperbarui dokumentasi repo tugas pada branch `main`; izin dokumentasi ini tidak berarti izin mengubah konfigurasi Docker atau implementasi PHP.
+
+---
+
+
 > Dokumen konteks utama untuk sesi belajar tugas Cloud Computing.
 > Pemilik proyek menulis dan mengubah seluruh source code aplikasi, konfigurasi, menjalankan perintah, dan mengelola implementasi. Asisten berperan sebagai instruktur. **Pengecualian yang diizinkan:** asisten boleh memperbarui dokumentasi proyek secara langsung pada branch `main`, termasuk melakukan commit dokumentasi, atas permintaan/izin eksplisit pemilik. Izin ini hanya untuk file dokumentasi; bukan source code, konfigurasi aplikasi/Docker, atau perubahan implementasi lainnya.
 
