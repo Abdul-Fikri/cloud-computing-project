@@ -312,3 +312,97 @@ Mulai dengan:
 3. Tunjukkan struktur folder target yang diusulkan.
 4. Mulai Tahap 0/Tahap 1 dengan instruksi kecil dan satu file/folder pada satu waktu.
 5. Jangan mengedit repository secara langsung. Pemilik mengetik dan mengubah semuanya sendiri.
+
+---
+
+## 14. Catatan Progres Implementasi — 18 November 2026
+
+### 14.1 Pemeriksaan lingkungan pengembangan
+
+Pemeriksaan awal dilakukan pada komputer pemilik proyek melalui Command Prompt.
+
+| Komponen | Versi / Hasil |
+|---|---|
+| Docker Engine | 29.9.3 |
+| Docker Compose | v5.7.0 |
+| Git | 2.51.2.windows.1 |
+| Node.js | v22.12.0 |
+| npm | 10.9.0 |
+| Docker Context | desktop-linux |
+| Docker OS | Docker Desktop, Linux |
+| Kernel | WSL2 |
+| Arsitektur | x86_64 |
+| CPU Docker | 8 |
+| RAM Docker | 3.674 GiB |
+
+**Status:** Docker Client dan Docker Server berhasil diakses melalui `docker info`. Docker Engine aktif.
+
+Catatan resource:
+- Docker melaporkan 6 container yang sudah ada.
+- 4 container berstatus running.
+- 2 container berstatus stopped.
+- Container yang sudah ada tidak boleh dihentikan atau dihapus sembarangan karena mungkin digunakan untuk latihan lain.
+
+### 14.2 Verifikasi repository
+
+Direktori kerja lokal:
+
+`C:\cloud-computing-1`
+
+Git remote:
+- `origin`: `https://github.com/Abdul-Fikri/cloud-computing-project.git`
+
+Branch:
+- `main`
+- Tracking: `origin/main`
+
+Hasil `git status --short --branch`:
+
+`## main...origin/main`
+
+Artinya working tree bersih pada saat pemeriksaan.
+
+### 14.3 Struktur direktori lokal yang terverifikasi
+
+```text
+cloud-computing-1/
+├── mini-event-management/
+│   ├── build/
+│   ├── htdocs/
+│   ├── docker-compose.yaml
+│   └── README.md
+│
+├── praktek-docker/
+│   ├── build/
+│   ├── htdocs/
+│   ├── docker-compose.yaml
+│   └── README.md
+│
+└── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
+```
+
+Kedua folder latihan lama masih tersedia dan tidak boleh ditimpa, dihapus, atau diubah tanpa keputusan pemilik proyek.
+
+### 14.4 Status pembelajaran
+
+| Tahap | Status |
+|---|---|
+| Tahap 0 — Memahami rancangan | Selesai secara konseptual |
+| Tahap 1 — Menyiapkan ruang kerja | Pemeriksaan awal selesai, struktur proyek baru belum dibuat |
+| Tahap 2 — Menjalankan MySQL | Belum dimulai |
+| Tahap 3 — Aplikasi PHP | Belum dimulai |
+| Tahap 4 — Aplikasi Next.js | Belum dimulai |
+| Tahap 5 — Integrasi dan pengujian | Belum dimulai |
+| Tahap 6 — Dokumentasi dan demo | Belum dimulai |
+
+### 14.5 Keputusan dan catatan lanjutan
+
+1. Repository lokal yang digunakan sudah terverifikasi.
+2. Docker Engine sudah aktif.
+3. Proyek baru akan dibuat pada folder terpisah agar tidak mengganggu latihan lama.
+4. Nama dan struktur folder proyek baru belum ditetapkan.
+5. Belum ada file aplikasi atau konfigurasi Compose baru yang dibuat pada tahap ini.
+6. Semua hasil perintah dan keputusan teknis berikutnya harus dicatat dalam dokumentasi progres.
+7. Pemilik proyek tetap melakukan seluruh perubahan file, menjalankan perintah, dan commit secara mandiri.
+
+**Titik terakhir pembelajaran:** menunggu pemeriksaan struktur isi folder latihan sebelum menentukan struktur proyek baru.
