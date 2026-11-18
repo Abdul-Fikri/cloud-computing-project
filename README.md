@@ -49,6 +49,21 @@ Skrip pada `database/init/` hanya dijalankan otomatis oleh image MySQL ketika di
 
 Schema domain MySQL untuk migrasi aplikasi tersedia di `database/migrations/001_mini_event_management_mysql.sql` dan juga menjadi skrip init untuk volume baru. File init lama yang membuat tabel demo dengan ID numerik telah dihapus agar tidak mendahului schema domain. Schema masih perlu diuji pada MySQL 8.4. Volume lama tidak akan berubah otomatis.
 
+### Upgrade volume lama yang masih memakai tabel demo
+
+Jangan jalankan langkah ini sebelum backup database berhasil dibuat dan diverifikasi. Untuk volume yang masih memiliki tabel `events` numerik lama:
+
+1. Hentikan sementara akses tulis aplikasi (jangan hapus volume).
+2. Buat backup database dengan `mysqldump` dan pastikan file backup tersimpan.
+3. Rename tabel lama: `RENAME TABLE events TO events_legacy;`.
+4. Terapkan `database/migrations/001_mini_event_management_mysql.sql` pada database yang sama.
+5. Jalankan Next.js, buat akun Owner dan grup melalui onboarding.
+6. Isi `PHP_DEFAULT_GROUP_ID` dengan ID grup tersebut.
+7. Edit placeholder `PASTE_OWNER_GROUP_UUID_HERE` pada `database/migrations/003_import_legacy_demo_events.sql`, lalu jalankan script untuk mengimpor data lama.
+8. Periksa tiga hitungan hasil import di akhir script sebelum membuka kembali akses tulis.
+
+Script 003 memakai tabel mapping agar impor yang dijalankan ulang tidak membuat event duplikat. Jangan menghapus tabel `events_legacy` atau mapping sampai hasil migrasi diverifikasi. Instruksi ini belum diuji pada volume lokal; jangan eksekusi dulu.
+
 ## Status dan rencana
 
 1. Audit skema dan ketergantungan Supabase.
