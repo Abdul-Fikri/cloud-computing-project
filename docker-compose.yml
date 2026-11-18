@@ -57,6 +57,7 @@ services:
       DB_NAME: ${MYSQL_DATABASE}
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
+      PHP_DEFAULT_GROUP_ID: ${PHP_DEFAULT_GROUP_ID:-}
     depends_on:
       mysql:
         condition: service_healthy
