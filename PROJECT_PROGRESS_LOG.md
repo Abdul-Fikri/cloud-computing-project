@@ -745,3 +745,12 @@ Batasan validasi:
 - Skrip init hanya berlaku pada volume MySQL baru. Volume aktif yang sebelumnya dibuat dengan tabel demo tidak berubah otomatis.
 - Belum ada migrasi upgrade untuk mengonversi tabel `events` lama beserta data existing. Jangan jalankan migration atau reset volume sebelum rencana backup dan konversi diuji.
 - PHP demo dan endpoint demo Next.js belum memiliki autentikasi pengguna. Group ID membatasi data yang disentuh, tetapi bukan kontrol akses yang cukup untuk deployment publik.
+
+
+### 18.12 Koreksi init script dan konfigurasi environment Next.js — 18 November 2026
+
+Pemeriksaan lanjutan menemukan ada file init lama kedua, `database/init/001_create_tables.sql`, yang juga membuat tabel `events` numerik. File tersebut telah dihapus dari branch tugas agar tidak dieksekusi sebelum schema utama. Dengan demikian hanya satu skrip init yang membuat schema lengkap.
+
+Environment `PHP_DEFAULT_GROUP_ID` sekarang diteruskan ke kedua service aplikasi (PHP dan Next.js), sehingga endpoint demo Next.js dan PHP menggunakan group scope yang sama. Batas nama event pada form demo Next.js juga diselaraskan menjadi 160 karakter sesuai kolom schema utama.
+
+**Status:** source dan dokumentasi sudah diperbarui, tetapi belum dilakukan build Docker, validasi SQL pada MySQL 8.4, atau pengujian integrasi ulang. Volume existing tetap tidak disentuh.
