@@ -275,3 +275,10 @@ C:\\cloud-computing-1\\
 Struktur ini baru keputusan desain; belum ada folder/file implementasi yang dibuat. Penempatan Dockerfile dan source masing-masing aplikasi akan dipastikan setelah memeriksa isi aktual folder yang tersedia. Kedua folder latihan tetap tidak boleh ditimpa, dipindahkan, atau dihapus.
 
 **Tahap berikutnya:** periksa isi root repository dan file/folder yang ada agar kita menentukan apakah folder `mini-event-management` dan `praktek-docker` memang akan menjadi dua app service tugas atau perlu disiapkan source aplikasi baru di dalamnya. Belum ada perubahan implementasi.
+
+
+## 19 November 2026 — Penetapan folder aplikasi
+
+Pemilik menetapkan bahwa folder lokal `mini-event-management/` akan menjadi aplikasi Next.js/JavaScript, sedangkan `praktek-docker/` akan menjadi aplikasi PHP. Folder `mini-event-management/` saat ini masih berisi salinan latihan PHP dari `praktek-docker/`; belum ada migrasi atau penghapusan file. Repository GitHub `mini-event-management` yang diberikan pemilik menjadi referensi source/domain Next.js, dan berbeda dari folder lokal bernama sama.
+
+Folder `database/` akan ditambahkan di root untuk SQL MySQL bersama, sedangkan `docker-compose.yml` berada di root untuk orkestrasi tiga service. Langkah implementasi pertama adalah inventarisasi isi root dan kedua folder aplikasi sebelum memutuskan file mana yang dipertahankan, diganti, atau ditambahkan. Belum ada source code atau konfigurasi implementasi yang diubah.
