@@ -21,12 +21,12 @@ export async function uploadGroupLogo(formData){
  if(!TYPES[file.type](bytes))return {ok:false,message:"Isi file tidak sesuai dengan format gambar."};
  const url=`/api/groups/${group.id}/logo?v=${randomUUID()}`;
  try{await getMysqlPool().execute("UPDATE `groups` SET logo_url=?,logo_mime=?,logo_data=? WHERE id=? AND owner_id=?",[url,file.type,Buffer.from(bytes),group.id,owner.id]);}
- catch(error){console.error("[uploadGroupLogo]",error.code,error.message);return {ok:false,message:"Logo gagal disimpan ke database. Pastikan migration 002_group_logo_blob_storage.sql sudah diterapkan."};}
+ catch(error){console.error("[uploadGroupLogo]",error.code,error.message);return {ok:false,message:"Logo gagal disimpan ke database. Pastikan schema MySQL memiliki kolom logo_mime dan logo_data."};}
  revalidatePath("/", "layout");return {ok:true,message:"Logo grup berhasil diperbarui."};
 }
 export async function removeGroupLogo(){
  const {owner,group}=await requireGroup();
  try{await getMysqlPool().execute("UPDATE `groups` SET logo_url=NULL,logo_mime=NULL,logo_data=NULL WHERE id=? AND owner_id=?",[group.id,owner.id]);}
- catch(error){console.error("[removeGroupLogo]",error.code,error.message);return {ok:false,message:"Logo grup gagal dihapus. Pastikan schema database sudah diperbarui."};}
+ catch(error){console.error("[removeGroupLogo]",error.code,error.message);return {ok:false,message:"Logo grup gagal dihapus. Pastikan schema MySQL memiliki kolom logo_mime dan logo_data."};}
  revalidatePath("/", "layout");return {ok:true,message:"Logo grup berhasil dihapus."};
 }
