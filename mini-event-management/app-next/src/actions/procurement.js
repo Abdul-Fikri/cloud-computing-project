@@ -49,9 +49,9 @@ export async function syncProcurementItemToFinance(formData){
   if(!item.actual_unit_price||item.actual_unit_price<=0){await connection.rollback();redirect(`${returnPath}?procurement_error=missing_actual_price`);}
   if(!item.purchased_date){await connection.rollback();redirect(`${returnPath}?procurement_error=missing_purchase_date`);}
   const amount=Math.round(Number(item.actual_unit_price)*Number(item.quantity));if(!Number.isSafeInteger(amount)||amount<=0)throw new Error("Invalid procurement expense total");
-  const [existing]=await connection.execute("SELECT id FROM transactions WHERE procurement_item_id=? LIMIT 1",[itemId]);
+  const [existing]=await connection.execute("SELECT id FROM transactions WHERE procurement_item_id=? AND event_id=? AND group_id=? LIMIT 1",[itemId,eventId,group.id]);
   const description="Pengadaan: "+item.name;
-  if(existing.length)await connection.execute("UPDATE transactions SET category_id=?,trx_date=?,description=?,amount=?,recorded_by=? WHERE id=?",[item.category_id,item.purchased_date,description,amount,item.pic_member_id,existing[0].id]);
+  if(existing.length)await connection.execute("UPDATE transactions SET category_id=?,trx_date=?,description=?,amount=?,recorded_by=? WHERE id=? AND event_id=? AND group_id=?",[item.category_id,item.purchased_date,description,amount,item.pic_member_id,existing[0].id,eventId,group.id]);
   else await connection.execute("INSERT INTO transactions (id,group_id,event_id,category_id,type,trx_date,description,amount,recorded_by,procurement_item_id) VALUES (?,?,?,?,'expense',?,?,?,?,?)",[randomUUID(),group.id,eventId,item.category_id,item.purchased_date,description,amount,item.pic_member_id,itemId]);
   await connection.commit();
  }catch(error){try{await connection.rollback();}catch{};if(error?.digest?.startsWith("NEXT_REDIRECT"))throw error;console.error("[syncProcurementItemToFinance]",error.code,error.message);redirect(`${returnPath}?procurement_error=sync_failed`);}
