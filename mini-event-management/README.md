@@ -1,55 +1,36 @@
-# docker-nginx-php-mysql
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Deskripsi
-Repository ini berisi konfigurasi Docker untuk menjalankan stack **Nginx + PHP + MariaDB + phpMyAdmin** secara otomatis. Cocok untuk pengembangan aplikasi berbasis PHP.
+## Getting Started
 
-## Struktur Folder
-- `build/nginx/` : Konfigurasi Nginx
-- `build/php/` : Dockerfile & konfigurasi PHP
-- `htdocs/` : Folder web utama (source code PHP)
-- `docker-compose.yaml` : File utama untuk menjalankan semua service
+First, run the development server:
 
-## Cara Penggunaan
-
-### 1. Pastikan Sudah Install
-- [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
-
-### 2. Jalankan Project
-Buka terminal di folder ini, lalu jalankan:
-```sh
-docker-compose up --build
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
-Tunggu hingga semua service berjalan.
 
-### 3. Akses Aplikasi
-- **Web utama**: [http://localhost](http://localhost)
-- **phpMyAdmin**: [http://localhost:8080](http://localhost:8080)
-- **MariaDB**: Host `db`, port `3307`, user `homestead`, password `secret`, root password `root`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 4. Struktur Web
-Letakkan file PHP Anda di folder `htdocs`. Contoh file sudah tersedia: `index.php`.
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-### 5. Konfigurasi
-- **Nginx**: Ubah konfigurasi di `build/nginx/conf.d/`
-- **PHP**: Ubah konfigurasi di `build/php/php.ini`
-- **Database**: Data tersimpan di volume `inventarisdb` (tidak hilang saat container dimatikan)
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Tips
-- Untuk menghentikan semua service:  
-  ```sh
-  docker-compose down
-  ```
-- Untuk rebuild jika ada perubahan konfigurasi:  
-  ```sh
-  docker-compose up --build
-  ```
+## Learn More
 
-## Troubleshooting
-- Jika port sudah dipakai, ubah port di `docker-compose.yaml`
-- Jika ada error permission, jalankan dengan hak akses administrator
+To learn more about Next.js, take a look at the following resources:
 
----
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-**Selamat mencoba!**  
-Jika ada pertanyaan, silakan buka issue di repository ini.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
