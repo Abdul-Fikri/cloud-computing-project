@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS procurement_items (
   KEY procurement_category_idx (category_id),
   CONSTRAINT procurement_items_event_group_fk FOREIGN KEY (event_id, group_id) REFERENCES events(id, group_id) ON DELETE CASCADE,
   CONSTRAINT procurement_items_pic_fk FOREIGN KEY (pic_member_id) REFERENCES members(id) ON DELETE SET NULL,
-  CONSTRAINT procurement_items_category_event_fk FOREIGN KEY (category_id, event_id) REFERENCES budget_categories(id, event_id) ON DELETE SET NULL,
+  CONSTRAINT procurement_items_category_event_fk FOREIGN KEY (category_id, event_id) REFERENCES budget_categories(id, event_id) ON DELETE RESTRICT,
   CONSTRAINT procurement_items_quantity_chk CHECK (quantity > 0),
   CONSTRAINT procurement_items_est_price_chk CHECK (est_unit_price IS NULL OR est_unit_price >= 0),
   CONSTRAINT procurement_items_actual_price_chk CHECK (actual_unit_price IS NULL OR actual_unit_price >= 0)
