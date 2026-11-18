@@ -317,3 +317,53 @@ Artinya branch aktif `main` sinkron dengan `origin/main` dan tidak ada perubahan
 Catatan: pemeriksaan ini hanya mencatat keberadaan folder/file tingkat atas. Isi lengkap subfolder `build/` dan `htdocs/` belum diperiksa ulang dalam langkah ini. Tidak ada file yang diubah atau dihapus.
 
 **Langkah berikutnya:** inventarisasi file di dalam kedua folder dengan `tree /F` atau `dir /s` agar strategi migrasi `mini-event-management/` menjadi Next.js dapat ditentukan tanpa kehilangan file latihan yang mungkin perlu disimpan.
+
+
+## 19 November 2026 — Inventarisasi lengkap dua folder latihan
+
+Pemilik menjalankan `tree [folder] /F` dari CMD untuk kedua folder.
+
+Struktur `mini-event-management/`:
+
+```text
+mini-event-management/
+├── docker-compose.yaml
+├── README.md
+├── build/
+│   ├── nginx/
+│   │   ├── nginx.conf
+│   │   └── conf.d/localapp.conf
+│   └── php/
+│       ├── Dockerfile
+│       └── php.ini
+└── htdocs/
+    ├── index.php
+    └── html/error_log
+```
+
+Struktur `praktek-docker/` sama persis berdasarkan output `tree /F`:
+
+```text
+praktek-docker/
+├── docker-compose.yaml
+├── README.md
+├── build/
+│   ├── nginx/
+│   │   ├── nginx.conf
+│   │   └── conf.d/localapp.conf
+│   └── php/
+│       ├── Dockerfile
+│       └── php.ini
+└── htdocs/
+    ├── index.php
+    └── html/error_log
+```
+
+Implikasi terhadap rencana:
+- `mini-event-management/` belum memiliki struktur source Next.js; saat ini masih berisi latihan PHP + Nginx.
+- `praktek-docker/` dipertahankan sebagai aplikasi PHP.
+- Sebelum folder `mini-event-management/` dikonversi menjadi Next.js, buat cadangan latihan lamanya di luar folder aktif atau dengan cara lain yang disepakati agar file latihan tidak hilang. Jangan menghapus/menimpa file pada langkah ini.
+- `praktek-docker/` tidak diubah pada tahap persiapan Next.js.
+- Compose tingkat root dan folder `database/` belum dibuat.
+
+Belum ada source code atau konfigurasi implementasi yang diubah. Langkah berikutnya adalah membuat backup folder latihan `mini-event-management` sebelum menyiapkan aplikasi Next.js di lokasi tersebut.
