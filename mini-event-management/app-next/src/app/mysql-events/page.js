@@ -42,8 +42,24 @@ export default function MysqlEventsPage() {
   }, []);
 
   useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+    let active = true;
+
+    async function fetchInitialEvents() {
+      try {
+        const response = await fetch("/api/docker-events", { cache: "no-store" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Gagal memuat event.");
+        if (active) setEvents(result.data || []);
+      } catch (err) {
+        if (active) setError(err.message || "Tidak dapat terhubung ke server.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    fetchInitialEvents();
+    return () => { active = false; };
+  }, []);
 
   function updateField(event) {
     const { name, value } = event.target;
