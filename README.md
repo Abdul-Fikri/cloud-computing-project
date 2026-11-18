@@ -2,7 +2,7 @@
 
 Repository tugas Cloud Computing. Versi target menjalankan aplikasi Mini Event Management (Next.js), aplikasi PHP, dan satu MySQL bersama melalui Docker Compose.
 
-> **Status migrasi:** sedang dikerjakan. Halaman demo `/mysql-events` sudah pernah diuji dua arah dengan PHP, tetapi aplikasi utama Mini Event Management belum selesai dimigrasikan dari Supabase ke MySQL. Jangan anggap seluruh fitur sudah siap.
+ > **Status migrasi:** sedang dikerjakan. Source aplikasi utama sudah banyak dialihkan ke MySQL, tetapi build dan pengujian end-to-end setelah batch migrasi terbaru belum selesai. Demo lintas aplikasi kini memakai schema event utama yang sama; belum diuji ulang pada schema final ini.
 
 ## Target arsitektur
 
@@ -47,7 +47,7 @@ Jangan mengekspos aplikasi demo ini ke internet publik tanpa menambahkan autenti
 
 Skrip pada `database/init/` hanya dijalankan otomatis oleh image MySQL ketika direktori data masih kosong. Untuk volume yang sudah pernah dipakai, perubahan schema harus diterapkan sebagai migrasi terencana setelah backup; menambahkan file init baru tidak otomatis mengubah volume lama.
 
-Schema domain MySQL awal untuk migrasi aplikasi tersedia di `database/migrations/001_mini_event_management_mysql.sql`. Schema ini masih perlu diverifikasi pada MySQL 8.4 dan diselaraskan dengan migrasi aplikasi sebelum digunakan pada database yang sudah berisi data.
+Schema domain MySQL untuk migrasi aplikasi tersedia di `database/migrations/001_mini_event_management_mysql.sql` dan juga menjadi skrip init untuk volume baru. File init lama yang membuat tabel demo dengan ID numerik telah dihapus agar tidak mendahului schema domain. Schema masih perlu diuji pada MySQL 8.4. Volume lama tidak akan berubah otomatis.
 
 ## Status dan rencana
 
