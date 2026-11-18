@@ -1,16 +1,12 @@
-import { getEventContext } from "@/lib/events/get-event-context";
+import {getEventContext} from "@/lib/events/get-event-context";
+import {getMysqlPool} from "@/lib/mysql";
 import TaskKanbanBoard from "@/components/events/TaskKanbanBoard";
-export const metadata = { title: "Tugas Event" };
-export default async function EventTasksPage({ params }) {
-  const { id } = await params;
-  const { group, supabase } = await getEventContext(id);
-  const [{ data: tasks }, { data: assignments }] = await Promise.all([
-    supabase.from("tasks").select("*").eq("event_id", id).eq("group_id", group.id).order("due_date").order("created_at"),
-    supabase.from("event_members").select("member_id").eq("event_id", id).eq("group_id", group.id),
-  ]);
-  const memberIds = [...new Set((assignments ?? []).map(item => item.member_id))];
-  const { data: members } = memberIds.length
-    ? await supabase.from("members").select("id,full_name").eq("group_id", group.id).in("id", memberIds).order("full_name")
-    : { data: [] };
-  return <TaskKanbanBoard eventId={id} tasks={tasks ?? []} members={members ?? []}/>;
+export const metadata={title:"Tugas Event"};
+export default async function EventTasksPage({params}){
+ const {id}=await params,{group}=await getEventContext(id),pool=getMysqlPool();
+ const [[tasks],[members]]=await Promise.all([
+  pool.execute("SELECT * FROM tasks WHERE event_id=? AND group_id=? ORDER BY due_date,created_at",[id,group.id]),
+  pool.execute("SELECT DISTINCT m.id,m.full_name FROM event_members em JOIN members m ON m.id=em.member_id WHERE em.event_id=? AND em.group_id=? ORDER BY m.full_name",[id,group.id])
+ ]);
+ return <TaskKanbanBoard eventId={id} tasks={tasks} members={members}/>;
 }
