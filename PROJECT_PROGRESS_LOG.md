@@ -429,3 +429,54 @@ Isi `src/app/` yang terlihat:
 Catatan: keberadaan `.next/` menunjukkan direktori output/cache Next.js telah dibuat, tetapi output ini sendiri tidak membuktikan `npm run build` berhasil. Pemilik belum mengirim hasil perintah `npm run build`; status production build masih belum diverifikasi. File `AGENTS.md` terdeteksi tetapi belum dibaca.
 
 Langkah berikutnya: jalankan `npm run build` dari folder `mini-event-management/` dan kirim seluruh output akhir, terutama ringkasan route atau pesan error. Tidak ada perubahan source/config yang dilakukan.
+
+
+## 19 November 2026 — Integrasi source repo Mini Event Management dimulai
+
+Pemilik meminta agar pengembangan kode web dilakukan langsung pada repository asli `Abdul-Fikri/mini-event-management`, bukan membangun ulang aplikasi dari scaffold minimal di repository tugas. Repository asli telah diperiksa pada branch `main`: aplikasi merupakan Next.js 16.4.5 + React 19.3.0, menggunakan Supabase Auth, PostgreSQL, dan Storage; domainnya mencakup grup, anggota, event, susunan panitia, rundown, tugas, pengadaan, keuangan, dan ekspor. Source saat ini menggunakan Supabase Client di Server Components/Server Actions dan helper autentikasi mengambil grup/anggota dari Supabase.
+
+Karena aplikasi sudah cukup besar dan memiliki banyak aturan domain, konversi seluruh Supabase ke MySQL bukan perubahan kecil. Jalur integrasi yang disiapkan adalah mempertahankan Supabase Auth (dan Storage untuk logo pada tahap awal) sebagai layanan eksternal, sementara data operasional aplikasi secara bertahap dipindahkan ke satu MySQL bersama yang juga dipakai aplikasi PHP. Identitas Owner dari Supabase Auth dapat dipetakan ke kolom `groups.owner_id` pada MySQL; seluruh otorisasi data operasional tetap harus diperiksa di server. Keputusan final untuk mempertahankan Supabase Auth perlu dikonfirmasi sebelum menghapus atau menonaktifkan modul Supabase apa pun.
+
+Asisten membuat branch `feat/shared-mysql-integration` pada repository `Abdul-Fikri/mini-event-management` dari `main`, lalu menambahkan dua file source (belum diuji runtime):
+- `src/lib/mysql.js`: connection pool `mysql2/promise` server-only dengan konfigurasi dari `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, dan cache pool global untuk Next.js development hot reload.
+- `src/app/api/health/mysql/route.js`: endpoint GET untuk menguji koneksi dengan `SELECT 1`, tanpa mengirim detail error/credential database ke response client.
+
+Commit branch terakhir: `0924b98d250a0bb90ae76a15d309895952c5171d`. Branch URL: https://github.com/Abdul-Fikri/mini-event-management/tree/feat/shared-mysql-integration. Belum ada PR/merge ke `main`, belum ada dependency `mysql2` yang ditambahkan ke `package.json`/lockfile, dan belum ada build atau koneksi MySQL yang diuji. Pemilik perlu menjalankan `npm install mysql2` pada clone repository asli setelah mengambil branch tersebut. Nama environment `DB_*` perlu disamakan dengan konfigurasi Docker Compose yang akan dibuat pemilik.
+
+Batas tanggung jawab: asisten mengubah source web Next.js saja pada repository asli. Pemilik tetap mengelola Dockerfile, Compose, `.env`, MySQL container, volume/network, konfigurasi, serta aplikasi PHP. Folder `praktek-docker/` pada repository tugas tidak disentuh.
+
+
+## 18 November 2026 — Clone aplikasi Next.js dan instalasi driver MySQL
+
+Pemilik melakukan clone repository aplikasi asli `Abdul-Fikri/mini-event-management` pada branch `feat/shared-mysql-integration`. Setelah koreksi lokasi workspace, repository ditempatkan di:
+
+`C:\\cloud-computing-1\\mini-event-management\\app-next`
+
+Verifikasi lokal yang dibagikan pemilik:
+- Branch aktif: `feat/shared-mysql-integration`.
+- Branch tracking: `origin/feat/shared-mysql-integration`.
+- Repository awal setelah clone: working tree clean.
+- Dependency Next.js berhasil dipasang dengan `npm install`.
+- Driver `mysql2@3.24.6` berhasil dipasang dan diverifikasi dengan `npm ls mysql2`.
+
+Pada awalnya perubahan `package.json` dan `package-lock.json` belum ter-commit. Pemilik kemudian menjalankan:
+- `git add package.json package-lock.json`
+- `git commit -m "chore: add mysql2 dependency"`
+- `git push origin feat/shared-mysql-integration`
+
+Hasil akhir yang dibagikan:
+- Commit terbaru: `f6aee6a` — `chore: add mysql2 dependency`.
+- Push berhasil memperbarui remote dari `0924b98` ke `f6aee6a`.
+- `git status`: branch up to date dengan origin dan working tree clean.
+
+Catatan teknis:
+- Source `src/lib/mysql.js` dan endpoint `src/app/api/health/mysql/route.js` telah tersedia sebelumnya pada branch fitur.
+- Connection pool membaca `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, dan `DB_PASSWORD`.
+- Endpoint health menjalankan `SELECT 1` dan mengembalikan status connected atau HTTP 503.
+- Belum ada bukti bahwa endpoint telah diuji terhadap instance MySQL aktif.
+- Konfigurasi lokal `.env.local` telah dibuat oleh pemilik dengan nilai sementara; kredensial tidak dicatat dalam dokumentasi.
+- Untuk koneksi dari container Compose, hostname database harus menggunakan nama service `mysql`; `localhost` hanya relevan untuk koneksi dari proses yang berjalan pada host ketika port database dipublikasikan.
+
+### Titik lanjut
+
+Sebelum menguji endpoint, siapkan dan jalankan satu service MySQL bersama pada root workspace `C:\\cloud-computing-1`, yang nantinya juga dipakai aplikasi PHP. Jangan membuat database/container terpisah untuk Next.js. Tahap MySQL Compose belum dimulai dan belum ada konfigurasi Docker implementasi baru yang dibuat dalam langkah ini.
