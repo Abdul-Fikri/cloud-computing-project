@@ -480,3 +480,61 @@ Catatan teknis:
 ### Titik lanjut
 
 Sebelum menguji endpoint, siapkan dan jalankan satu service MySQL bersama pada root workspace `C:\\cloud-computing-1`, yang nantinya juga dipakai aplikasi PHP. Jangan membuat database/container terpisah untuk Next.js. Tahap MySQL Compose belum dimulai dan belum ada konfigurasi Docker implementasi baru yang dibuat dalam langkah ini.
+
+
+---
+
+## 18 November 2026 — Sinkronisasi kondisi aktual repository tugas
+
+Pembaruan ini menjadi catatan progres terbaru dan mengoreksi status yang sudah tidak berlaku pada entri historis sebelumnya. Kondisi diverifikasi dengan membaca file di repository `Abdul-Fikri/cloud-computing-project`, branch `main`.
+
+### Struktur yang ada di repository
+
+```text
+cloud-computing-project/
+├── app-php/
+│   ├── Dockerfile
+│   └── src/
+│       ├── db.php
+│       └── index.php
+├── database/
+│   └── init/
+│       └── 001_create_tables.sql
+├── docker-compose.yml
+├── .gitignore
+├── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
+└── PROJECT_PROGRESS_LOG.md
+```
+
+### Kondisi aktual file dan fitur
+
+| Item | Hasil pemeriksaan |
+|---|---|
+| Compose | Service `mysql` dan `app-php`; belum ada `app-next` |
+| MySQL | Image `mysql:8.4`, named volume `mysql_data`, healthcheck, network `shared-network` |
+| PHP Dockerfile | `php:8.4-apache`, ekstensi `pdo` dan `pdo_mysql` |
+| PHP DB connection | PDO, environment `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
+| PHP UI | Form insert event dan tabel daftar event |
+| Database schema | Tabel `events` sesuai kolom yang dipakai kedua aplikasi |
+| Git ignore | `.env` dan `.env.*` diabaikan; `.env.example` dikecualikan dari ignore |
+
+### Progres yang telah dikonfirmasi pemilik
+- MySQL berhasil dijalankan dan tabel `events` sudah diperiksa.
+- Aplikasi PHP berhasil dijalankan melalui port host `8080`.
+- PHP berhasil menyimpan event dan menampilkan data dari MySQL.
+- Peringatan header PHP sebelumnya telah diperbaiki dan pemilik mengonfirmasi aplikasi kembali berjalan normal.
+
+### Status Next.js dan langkah berikutnya
+- File Next.js belum ditemukan pada struktur implementasi yang terverifikasi di branch `main`; Compose juga belum mendefinisikan service `app-next`.
+- Catatan sesi sebelumnya menyatakan scaffold Next.js dan `node_modules` telah dibuat pada workspace lokal. Karena isi workspace lokal tidak dapat dibaca langsung dari GitHub, jangan menyimpulkan bahwa dependency belum dipasang atau menyuruh pemilik menjalankan generator/instalasi ulang.
+- Langkah berikutnya adalah mengidentifikasi lokasi scaffold Next.js yang sudah ada dan memastikan source tugas berada di repository `cloud-computing-project`, tanpa mengubah repository produksi `mini-event-management`.
+- Setelah lokasi source jelas, lanjutkan integrasi Next.js server-side ke MySQL yang sama. Jangan membuat service/database kedua.
+- Target demonstrasi akhir tetap: event yang dibuat melalui Next.js terlihat di PHP, dan event yang dibuat melalui PHP terlihat di Next.js.
+
+### Batasan yang harus dipertahankan
+1. Jangan mengubah repository produksi `Abdul-Fikri/mini-event-management`.
+2. Jangan mengulang audit SQL atau setup MySQL/PHP yang sudah selesai tanpa ada gejala masalah.
+3. Jangan meminta output `tree` umum lagi bila pemeriksaan file tertentu sudah cukup.
+4. Jangan menghapus named volume atau data database.
+5. Perubahan dokumentasi boleh dilakukan langsung di branch `main`; perubahan implementasi tetap mengikuti pembagian kerja yang disepakati.
+
