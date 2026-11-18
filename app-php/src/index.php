@@ -1,6 +1,17 @@
 
 <?php
-$pageTitle = "PHP Demo App";
+
+require_once __DIR__ . '/db.php';
+
+// Mengambil data event dari MySQL
+$stmt = $pdo->query(
+    "SELECT id, name, description, event_date, location
+     FROM events
+     ORDER BY event_date ASC"
+);
+
+$events = $stmt->fetchAll();
+
 ?>
 
 <!DOCTYPE html>
@@ -8,7 +19,8 @@ $pageTitle = "PHP Demo App";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
+    <title>PHP Demo App</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,16 +30,32 @@ $pageTitle = "PHP Demo App";
         }
 
         .container {
-            max-width: 600px;
-            margin: 50px auto;
+            max-width: 900px;
+            margin: auto;
             padding: 30px;
             background: white;
             border-radius: 12px;
-            text-align: center;
         }
 
         h1 {
             color: #2563eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #2563eb;
+            color: white;
         }
 
         .status {
@@ -36,20 +64,46 @@ $pageTitle = "PHP Demo App";
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1><?= htmlspecialchars($pageTitle) ?></h1>
-
-        <p>Selamat datang di aplikasi PHP.</p>
+        <h1>PHP Demo App</h1>
 
         <p class="status">
-            PHP berhasil dijalankan!
+            Berhasil terhubung ke MySQL!
         </p>
 
-        <p>
-            Aplikasi ini nantinya akan terhubung
-            ke database MySQL bersama.
-        </p>
+        <h2>Daftar Event</h2>
+
+        <?php if (count($events) > 0): ?>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Event</th>
+                        <th>Tanggal</th>
+                        <th>Lokasi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php foreach ($events as $event): ?>
+                        <tr>
+                            <td><?= htmlspecialchars((string) $event['id']) ?></td>
+                            <td><?= htmlspecialchars($event['name']) ?></td>
+                            <td><?= htmlspecialchars($event['event_date']) ?></td>
+                            <td><?= htmlspecialchars($event['location'] ?? '-') ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+        <?php else: ?>
+
+            <p>Belum ada event di database.</p>
+
+        <?php endif; ?>
     </div>
 </body>
 </html>
