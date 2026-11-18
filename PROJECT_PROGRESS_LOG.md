@@ -690,3 +690,35 @@ Tambahan perubahan:
 8. Update dokumentasi setup/migrasi untuk volume baru dan volume lama secara terpisah.
 
 Status saat catatan ini ditulis: banyak source query/action sudah dialihkan ke MySQL, tetapi belum ada hasil build dan uji end-to-end setelah seluruh perubahan. Belum boleh merge atau menyatakan migrasi selesai.
+
+
+### 18.8 Audit lanjutan sisa Supabase dan ruang Panitia — 18 November 2026
+
+Temuan dan perbaikan tambahan:
+- `pengadaan/all/page.js` sebelumnya masih memakai Supabase untuk item, PIC, kategori, dan transaksi tertaut. Sudah dipindahkan ke MySQL.
+- `(panitia)/panitia/layout.js` sebelumnya mengambil nama grup dari Supabase. Sudah dipindahkan ke MySQL.
+- `(panitia)/panitia/events/[id]/page.js` sekarang membatasi pembacaan event, rundown, tugas, pengadaan, dan penugasan berdasarkan `member.group_id`, bukan hanya ID event.
+- `events/new/page.js` dan `members/[id]/edit/page.js` sebelumnya masih mengambil data anggota dari Supabase. Keduanya sudah dipindahkan ke MySQL.
+- Audit terarah pada actions, halaman autentikasi, komponen domain, serta beberapa halaman utama tidak menemukan pemanggilan Supabase pada file yang diperiksa. Folder helper dan dependency Supabase masih ada, jadi belum boleh dihapus sebelum pencarian final seluruh repository.
+
+### 18.9 Temuan blocker integrasi PHP dan skema fresh Docker
+
+File `app-php/src/index.php` masih menggunakan kontrak tabel demo:
+- INSERT `events(name, description, event_date, location)`
+- SELECT kolom `event_date`
+
+Sementara skema Mini Event Management `database/migrations/001_mini_event_management_mysql.sql` memakai `events.id CHAR(36)`, `group_id` wajib, dan `start_date`; tidak ada kolom `event_date`. Jadi kedua aplikasi belum dapat memakai tabel `events` yang sama secara langsung pada skema final. Ini harus diselesaikan dengan desain integrasi yang eksplisit, bukan sekadar menjalankan migration di volume yang sudah ada.
+
+Temuan tambahan:
+- `docker-compose.yml` hanya me-mount `database/init` ke `/docker-entrypoint-initdb.d`.
+- `database/init/01-create-events.sql` masih membuat tabel demo `events` dengan ID auto-increment dan `event_date`.
+- Migration aplikasi utama `database/migrations/001_mini_event_management_mysql.sql` tidak otomatis dijalankan pada fresh volume oleh Compose saat ini. Karena init script membuat tabel `events` terlebih dahulu, menjalankan migration 001 sesudahnya pun tidak akan mengubah tabel tersebut karena memakai `CREATE TABLE IF NOT EXISTS`.
+
+**Jangan jalankan migration 001/002 pada volume aktif dan jangan hapus volume.** Diperlukan rencana schema final dan migrasi data untuk dua aplikasi terlebih dahulu. Pilihan desain harus mempertahankan tepat tiga service Docker dan satu MySQL bersama, serta memastikan PHP dapat membuat/membaca event yang juga dapat dikelola aplikasi Next.js. Setelah kontrak kolom dan identitas grup disepakati, perbarui PHP, schema fresh-install, dan migrasi upgrade secara konsisten.
+
+### 18.10 Validasi terbaru
+
+- Source code perubahan berada di branch `feat/nextjs-shared-mysql`.
+- Belum ada build setelah batch migrasi terbaru.
+- Belum ada validasi integrasi pada volume lama atau fresh volume.
+- Belum boleh merge, menjalankan migrasi database, atau menyatakan seluruh aplikasi selesai.
