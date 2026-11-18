@@ -282,3 +282,38 @@ Struktur ini baru keputusan desain; belum ada folder/file implementasi yang dibu
 Pemilik menetapkan bahwa folder lokal `mini-event-management/` akan menjadi aplikasi Next.js/JavaScript, sedangkan `praktek-docker/` akan menjadi aplikasi PHP. Folder `mini-event-management/` saat ini masih berisi salinan latihan PHP dari `praktek-docker/`; belum ada migrasi atau penghapusan file. Repository GitHub `mini-event-management` yang diberikan pemilik menjadi referensi source/domain Next.js, dan berbeda dari folder lokal bernama sama.
 
 Folder `database/` akan ditambahkan di root untuk SQL MySQL bersama, sedangkan `docker-compose.yml` berada di root untuk orkestrasi tiga service. Langkah implementasi pertama adalah inventarisasi isi root dan kedua folder aplikasi sebelum memutuskan file mana yang dipertahankan, diganti, atau ditambahkan. Belum ada source code atau konfigurasi implementasi yang diubah.
+
+
+## 19 November 2026 — Verifikasi workspace lokal (CMD)
+
+Pemilik menjalankan pemeriksaan menggunakan Windows Command Prompt (CMD) dari `C:\\cloud-computing-1`.
+
+Hasil `dir /a` pada root:
+- `.git/` tersedia.
+- `mini-event-management/` tersedia.
+- `praktek-docker/` tersedia.
+- `PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md` tersedia.
+- `PROJECT_PROGRESS_LOG.md` tersedia.
+- Belum ada folder `database/`, file `.env`, `.env.example`, `.gitignore`, atau root `docker-compose.yml` pada saat pemeriksaan.
+
+Hasil `dir mini-event-management /a`:
+- `build/`
+- `htdocs/`
+- `docker-compose.yaml`
+- `README.md`
+
+Hasil `dir praktek-docker /a`:
+- `build/`
+- `htdocs/`
+- `docker-compose.yaml`
+- `README.md`
+
+Hasil `git status --short --branch`:
+
+`## main...origin/main`
+
+Artinya branch aktif `main` sinkron dengan `origin/main` dan tidak ada perubahan lokal yang belum di-commit pada saat pemeriksaan.
+
+Catatan: pemeriksaan ini hanya mencatat keberadaan folder/file tingkat atas. Isi lengkap subfolder `build/` dan `htdocs/` belum diperiksa ulang dalam langkah ini. Tidak ada file yang diubah atau dihapus.
+
+**Langkah berikutnya:** inventarisasi file di dalam kedua folder dengan `tree /F` atau `dir /s` agar strategi migrasi `mini-event-management/` menjadi Next.js dapat ditentukan tanpa kehilangan file latihan yang mungkin perlu disimpan.
