@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
-const PUBLIC_PATHS = ["/login", "/register", "/contoh-event", "/join"];
+const PUBLIC_PATHS = ["/login", "/register", "/contoh-event", "/mysql-events", "/api/docker-events", "/join"];
 const AUTH_ONLY_PATHS = ["/login", "/register"];
 function isPublicPath(pathname) { return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`)); }
 function redirectTo(request, supabaseResponse, pathname) {
