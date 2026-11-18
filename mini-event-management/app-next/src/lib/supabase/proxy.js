@@ -12,6 +12,19 @@ function redirectTo(request, supabaseResponse, pathname) {
   return redirect;
 }
 export async function updateSession(request) {
+  const { pathname } = request.nextUrl;
+
+  // Demo integrasi MySQL untuk tugas Docker tidak memakai autentikasi Supabase.
+  // Bypass dibatasi hanya pada halaman demo dan endpoint API-nya.
+  if (
+    pathname === "/mysql-events" ||
+    pathname.startsWith("/mysql-events/") ||
+    pathname === "/api/docker-events" ||
+    pathname.startsWith("/api/docker-events/")
+  ) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
   const { url, key } = getSupabaseEnv();
   const supabase = createServerClient(url, key, {
@@ -28,7 +41,6 @@ export async function updateSession(request) {
   // Jangan menaruh kode lain di antara createServerClient dan getClaims().
   const { data } = await supabase.auth.getClaims();
   const isLoggedIn = Boolean(data?.claims);
-  const { pathname } = request.nextUrl;
   if (!isLoggedIn && !isPublicPath(pathname)) return redirectTo(request, supabaseResponse, "/login");
   if (isLoggedIn && AUTH_ONLY_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) return redirectTo(request, supabaseResponse, "/dashboard");
   return supabaseResponse;
