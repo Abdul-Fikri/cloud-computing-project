@@ -1,7 +1,7 @@
 # PROJECT CONTEXT — Docker Multi-Application + Shared MySQL
 
 > Dokumen konteks utama untuk sesi belajar tugas Cloud Computing.
-> Pemilik proyek menulis dan mengubah seluruh source code sendiri. Asisten berperan sebagai instruktur: menjelaskan konsep, menentukan file yang perlu dibuat, memberikan langkah dan kode yang perlu diketik, lalu membantu membaca error. Jangan mengubah repository, membuat commit, atau mengirim perubahan ke GitHub atas nama pemilik.
+> Pemilik proyek menulis dan mengubah seluruh source code aplikasi, konfigurasi, menjalankan perintah, dan mengelola implementasi. Asisten berperan sebagai instruktur. **Pengecualian yang diizinkan:** asisten boleh memperbarui dokumentasi proyek secara langsung pada branch `main`, termasuk melakukan commit dokumentasi, atas permintaan/izin eksplisit pemilik. Izin ini hanya untuk file dokumentasi; bukan source code, konfigurasi aplikasi/Docker, atau perubahan implementasi lainnya.
 
 **Tanggal konteks:** 18 November 2026  
 **Repository tugas:** https://github.com/Abdul-Fikri/cloud-computing-project  
@@ -226,11 +226,11 @@ Bukti demonstrasi paling penting adalah **data yang sama terlihat dari dua aplik
 
 Ini adalah batasan utama interaksi:
 
-- Pemilik sendiri yang mengedit file, menulis kode, membuat folder, menjalankan perintah, dan melakukan commit.
-- Asisten **tidak boleh** menggunakan GitHub write tools, mengubah file repository, membuat commit, push, merge, atau mengubah struktur secara langsung.
-- Asisten bertindak sebagai instruktur/mentor.
+- Pemilik sendiri yang mengedit seluruh source code aplikasi dan konfigurasi, membuat struktur implementasi, menjalankan perintah, dan melakukan commit implementasi.
+- **Asisten diizinkan memperbarui file dokumentasi proyek secara langsung pada branch `main` dan membuat commit dokumentasi.** Izin ini hanya berlaku untuk dokumentasi (misalnya file konteks, progres, catatan keputusan, atau README dokumentasi) dan tidak memberi izin mengubah source code, Dockerfile, Compose, konfigurasi aplikasi, atau implementasi.
+- Asisten bertindak sebagai instruktur/mentor untuk implementasi.
 - Berikan instruksi bertahap: satu milestone kecil, lalu tunggu hasil/error dari pemilik sebelum melanjutkan.
-- Untuk setiap langkah, sebutkan:
+- Untuk setiap langkah implementasi, sebutkan:
   1. Tujuan langkah.
   2. Lokasi folder/file yang harus dibuat atau dibuka.
   3. Kode lengkap atau bagian kode yang perlu diketik.
@@ -311,7 +311,7 @@ Mulai dengan:
 2. Jelaskan secara singkat perbedaan stack aplikasi sumber (Next.js + Supabase/PostgreSQL) dan target tugas (Next.js + MySQL, ditambah PHP + MySQL).
 3. Tunjukkan struktur folder target yang diusulkan.
 4. Mulai Tahap 0/Tahap 1 dengan instruksi kecil dan satu file/folder pada satu waktu.
-5. Jangan mengedit repository secara langsung. Pemilik mengetik dan mengubah semuanya sendiri.
+5. Jangan mengedit source code atau konfigurasi implementasi secara langsung. Pemilik mengetik dan mengubah semuanya sendiri. Asisten boleh mengelola dokumentasi di `main` sesuai izin khusus pada Bagian 10.
 
 ---
 
@@ -368,18 +368,46 @@ Artinya working tree bersih pada saat pemeriksaan.
 cloud-computing-1/
 ├── mini-event-management/
 │   ├── build/
+│   │   ├── nginx/
+│   │   │   ├── nginx.conf
+│   │   │   └── conf.d/
+│   │   │       └── localapp.conf
+│   │   └── php/
+│   │       ├── Dockerfile
+│   │       └── php.ini
 │   ├── htdocs/
+│   │   ├── index.php
+│   │   └── html/
+│   │       └── error_log
 │   ├── docker-compose.yaml
 │   └── README.md
 │
 ├── praktek-docker/
 │   ├── build/
+│   │   ├── nginx/
+│   │   │   ├── nginx.conf
+│   │   │   └── conf.d/
+│   │   │       └── localapp.conf
+│   │   └── php/
+│   │       ├── Dockerfile
+│   │       └── php.ini
 │   ├── htdocs/
+│   │   ├── index.php
+│   │   └── html/
+│   │       └── error_log
 │   ├── docker-compose.yaml
 │   └── README.md
 │
 └── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
 ```
+
+Kedua folder latihan memiliki struktur dan nama file yang identik berdasarkan output `tree [folder] /F` dari komputer pemilik pada 18 November 2026.
+
+**Analisis sementara:**
+- Kedua folder merupakan latihan dengan pola PHP dan Nginx.
+- Isi konfigurasi belum diperiksa pada saat catatan ini dibuat.
+- Keberadaan file dan struktur direktori tidak cukup untuk memastikan versi PHP, image database, atau konfigurasi runtime.
+- Jangan menyimpulkan konfigurasi aktual sebelum membaca isi file.
 
 Kedua folder latihan lama masih tersedia dan tidak boleh ditimpa, dihapus, atau diubah tanpa keputusan pemilik proyek.
 
@@ -388,7 +416,7 @@ Kedua folder latihan lama masih tersedia dan tidak boleh ditimpa, dihapus, atau 
 | Tahap | Status |
 |---|---|
 | Tahap 0 — Memahami rancangan | Selesai secara konseptual |
-| Tahap 1 — Menyiapkan ruang kerja | Pemeriksaan awal selesai, struktur proyek baru belum dibuat |
+| Tahap 1 — Menyiapkan ruang kerja | Pemeriksaan lingkungan dan struktur awal selesai; folder proyek baru belum dibuat |
 | Tahap 2 — Menjalankan MySQL | Belum dimulai |
 | Tahap 3 — Aplikasi PHP | Belum dimulai |
 | Tahap 4 — Aplikasi Next.js | Belum dimulai |
@@ -403,6 +431,16 @@ Kedua folder latihan lama masih tersedia dan tidak boleh ditimpa, dihapus, atau 
 4. Nama dan struktur folder proyek baru belum ditetapkan.
 5. Belum ada file aplikasi atau konfigurasi Compose baru yang dibuat pada tahap ini.
 6. Semua hasil perintah dan keputusan teknis berikutnya harus dicatat dalam dokumentasi progres.
-7. Pemilik proyek tetap melakukan seluruh perubahan file, menjalankan perintah, dan commit secara mandiri.
+7. Pemilik proyek tetap melakukan seluruh perubahan source code, konfigurasi implementasi, menjalankan perintah, dan commit implementasi secara mandiri.
+8. Asisten boleh melakukan perubahan dan commit langsung untuk file dokumentasi di branch `main`, sesuai izin eksplisit pemilik.
 
-**Titik terakhir pembelajaran:** menunggu pemeriksaan struktur isi folder latihan sebelum menentukan struktur proyek baru.
+### 14.6 Titik terakhir pembelajaran
+
+Pemeriksaan struktur folder selesai. Langkah berikutnya adalah membaca isi konfigurasi latihan lama untuk memahami pola PHP + Nginx yang sudah pernah digunakan.
+
+File yang akan diperiksa:
+- `mini-event-management/docker-compose.yaml`
+- `mini-event-management/build/php/Dockerfile`
+- `mini-event-management/htdocs/index.php`
+
+Hasil pemeriksaan isi file tersebut belum tersedia dan belum boleh diasumsikan.
