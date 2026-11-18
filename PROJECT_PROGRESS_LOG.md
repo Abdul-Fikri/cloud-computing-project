@@ -242,3 +242,36 @@ Belum ada container latihan yang dijalankan ulang, diubah, atau dihentikan dalam
 | `build/php/php.ini` | Isi diperiksa dari teks yang dibagikan |
 
 **Titik lanjut:** pemeriksaan konfigurasi utama latihan lama selesai. Tahap berikutnya adalah memulai penyiapan workspace proyek baru secara terpisah, tanpa mengubah dua folder latihan yang ada. Sebelum membuat folder, pastikan lokasi root repository dan nama folder baru disepakati.
+
+
+## 19 November 2026 — Klarifikasi struktur folder induk
+
+Pemilik mengklarifikasi bahwa folder lokal `C:\\cloud-computing-1` adalah folder induk/workspace untuk seluruh proyek, bukan lokasi untuk membuat satu folder induk baru lagi.
+
+Keputusan struktur:
+- `mini-event-management/` tetap berada langsung di root sebagai folder proyek/latihan yang sudah ada.
+- `praktek-docker/` tetap berada langsung di root sebagai folder proyek/latihan yang sudah ada.
+- Folder baru `database/` akan ditambahkan langsung di root untuk konfigurasi dan inisialisasi MySQL bersama; SQL init akan ditempatkan di `database/init/`.
+- `docker-compose.yml` untuk orkestrasi tiga service ditempatkan langsung di root.
+- File `.env.example`, `.gitignore`, dan README proyek juga berada di root.
+- Tidak perlu membuat folder induk baru atau memindahkan dua folder latihan yang sudah ada.
+
+Struktur target konseptual:
+
+```text
+C:\\cloud-computing-1\\
+├── mini-event-management\\
+├── praktek-docker\\
+├── database\\
+│   └── init\\
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+├── README.md
+├── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
+└── PROJECT_PROGRESS_LOG.md
+```
+
+Struktur ini baru keputusan desain; belum ada folder/file implementasi yang dibuat. Penempatan Dockerfile dan source masing-masing aplikasi akan dipastikan setelah memeriksa isi aktual folder yang tersedia. Kedua folder latihan tetap tidak boleh ditimpa, dipindahkan, atau dihapus.
+
+**Tahap berikutnya:** periksa isi root repository dan file/folder yang ada agar kita menentukan apakah folder `mini-event-management` dan `praktek-docker` memang akan menjadi dua app service tugas atau perlu disiapkan source aplikasi baru di dalamnya. Belum ada perubahan implementasi.
