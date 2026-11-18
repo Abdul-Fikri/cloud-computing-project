@@ -781,3 +781,18 @@ Audit menemukan dua potensi masalah sebelum database dijalankan:
 Migration 002 untuk logo dihapus karena kolom `logo_mime` dan `logo_data` sudah menjadi bagian schema 001; menjalankan ALTER TABLE lama akan menghasilkan duplicate column. README dibersihkan dari referensi migration 002.
 
 Belum ada eksekusi SQL pada database lokal. Validasi runtime MySQL 8.4 masih menjadi pekerjaan berikutnya.
+
+
+### 18.15 Audit lanjutan autentikasi, halaman, dan API — 18 November 2026
+
+Pemeriksaan file terpilih pada source Next.js menunjukkan:
+- Server Actions utama (auth, groups, events, members, divisions, schedule, tasks, procurement, finance, invitations, group logo) sudah memakai MySQL dan tidak lagi mengimpor Supabase.
+- Halaman login/register memakai Server Actions MySQL.
+- Halaman dashboard, event, keuangan, panitia, rundown, tugas, anggota, onboarding, dan pengaturan yang diperiksa memakai query MySQL.
+- `src/proxy.js` melewatkan request ke route handlers/server components; autentikasi dipaksakan pada fungsi guard seperti `requireOwner`, `requireGroup`, dan `requirePanitia`.
+- API logo grup sebelumnya bisa diakses hanya dengan mengetahui UUID. Endpoint kini memeriksa session dan memastikan user adalah Owner atau anggota grup sebelum mengirim BLOB, serta memakai cache private/no-store.
+- Endpoint demo `/api/docker-events` tetap sengaja tanpa login untuk kebutuhan integrasi tugas dan dibatasi ke `PHP_DEFAULT_GROUP_ID`. Jangan expose demo ke internet publik tanpa lapisan autentikasi tambahan.
+
+Audit ini mencakup file-file utama yang dipilih, bukan bukti bahwa seluruh 118 file sudah bebas dari semua referensi Supabase. Paket `@supabase/*` dan file helper lama belum dibersihkan karena lockfile belum diregenerasi; belum ditemukan jalur runtime utama yang masih memakainya pada file yang diperiksa.
+
+**Belum dilakukan:** npm ci/build, lint, eksekusi schema pada MySQL 8.4, uji CRUD end-to-end setelah migrasi, dan uji upgrade volume lama. Semua tetap perlu dilakukan sebelum PR/merge.
