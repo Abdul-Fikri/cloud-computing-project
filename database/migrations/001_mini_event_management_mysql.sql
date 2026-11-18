@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS events (
   KEY events_group_idx (group_id, start_date),
   KEY events_coordinator_idx (coordinator_id),
   CONSTRAINT events_group_fk FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
-  CONSTRAINT events_coordinator_group_fk FOREIGN KEY (coordinator_id, group_id) REFERENCES members(id, group_id) ON DELETE SET NULL,
+  CONSTRAINT events_coordinator_fk FOREIGN KEY (coordinator_id) REFERENCES members(id) ON DELETE SET NULL,
   CONSTRAINT events_end_date_chk CHECK (end_date IS NULL OR end_date >= start_date),
   CONSTRAINT events_budget_chk CHECK (target_budget IS NULL OR target_budget >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS event_members (
   KEY event_members_division_idx (division_id),
   CONSTRAINT event_members_event_group_fk FOREIGN KEY (event_id, group_id) REFERENCES events(id, group_id) ON DELETE CASCADE,
   CONSTRAINT event_members_member_group_fk FOREIGN KEY (member_id, group_id) REFERENCES members(id, group_id) ON DELETE CASCADE,
-  CONSTRAINT event_members_division_fk FOREIGN KEY (division_id, event_id, group_id) REFERENCES event_divisions(id, event_id, group_id) ON DELETE SET NULL
+  CONSTRAINT event_members_division_fk FOREIGN KEY (division_id) REFERENCES event_divisions(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS schedule_items (
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS schedule_items (
   KEY schedule_items_event_idx (event_id, item_date, start_time, sort_order),
   KEY schedule_items_pic_idx (pic_member_id),
   CONSTRAINT schedule_items_event_group_fk FOREIGN KEY (event_id, group_id) REFERENCES events(id, group_id) ON DELETE CASCADE,
-  CONSTRAINT schedule_items_pic_group_fk FOREIGN KEY (pic_member_id, group_id) REFERENCES members(id, group_id) ON DELETE SET NULL
+  CONSTRAINT schedule_items_pic_fk FOREIGN KEY (pic_member_id) REFERENCES members(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS tasks (
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   KEY tasks_event_status_idx (event_id, status),
   KEY tasks_assigned_idx (assigned_to),
   CONSTRAINT tasks_event_group_fk FOREIGN KEY (event_id, group_id) REFERENCES events(id, group_id) ON DELETE CASCADE,
-  CONSTRAINT tasks_assigned_group_fk FOREIGN KEY (assigned_to, group_id) REFERENCES members(id, group_id) ON DELETE SET NULL
+  CONSTRAINT tasks_assigned_fk FOREIGN KEY (assigned_to) REFERENCES members(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS budget_categories (
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS procurement_items (
   KEY procurement_pic_idx (pic_member_id),
   KEY procurement_category_idx (category_id),
   CONSTRAINT procurement_items_event_group_fk FOREIGN KEY (event_id, group_id) REFERENCES events(id, group_id) ON DELETE CASCADE,
-  CONSTRAINT procurement_items_pic_group_fk FOREIGN KEY (pic_member_id, group_id) REFERENCES members(id, group_id) ON DELETE SET NULL,
+  CONSTRAINT procurement_items_pic_fk FOREIGN KEY (pic_member_id) REFERENCES members(id) ON DELETE SET NULL,
   CONSTRAINT procurement_items_category_event_fk FOREIGN KEY (category_id, event_id) REFERENCES budget_categories(id, event_id) ON DELETE SET NULL,
   CONSTRAINT procurement_items_quantity_chk CHECK (quantity > 0),
   CONSTRAINT procurement_items_est_price_chk CHECK (est_unit_price IS NULL OR est_unit_price >= 0),
@@ -214,8 +214,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   KEY transactions_recorded_by_idx (recorded_by),
   CONSTRAINT transactions_event_group_fk FOREIGN KEY (event_id, group_id) REFERENCES events(id, group_id) ON DELETE CASCADE,
   CONSTRAINT transactions_category_event_fk FOREIGN KEY (category_id, event_id) REFERENCES budget_categories(id, event_id),
-  CONSTRAINT transactions_recorded_by_group_fk FOREIGN KEY (recorded_by, group_id) REFERENCES members(id, group_id) ON DELETE SET NULL,
-  CONSTRAINT transactions_procurement_fk FOREIGN KEY (procurement_item_id, event_id, group_id) REFERENCES procurement_items(id, event_id, group_id) ON DELETE SET NULL,
+  CONSTRAINT transactions_recorded_by_fk FOREIGN KEY (recorded_by) REFERENCES members(id) ON DELETE SET NULL,
+  CONSTRAINT transactions_procurement_fk FOREIGN KEY (procurement_item_id) REFERENCES procurement_items(id) ON DELETE SET NULL,
   CONSTRAINT transactions_amount_chk CHECK (amount > 0),
   CONSTRAINT transactions_procurement_expense_chk CHECK (procurement_item_id IS NULL OR type = 'expense')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
