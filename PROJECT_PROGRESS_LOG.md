@@ -381,3 +381,22 @@ Verifikasi `dir mini-event-management /a` menunjukkan folder hanya menyisakan `R
 Konsekuensi yang disepakati: latihan PHP/Nginx di folder `mini-event-management/` dihapus langsung tanpa backup sesuai keputusan pemilik. Folder `praktek-docker/` tidak disentuh. Belum ada scaffold Next.js yang dibuat, dan README lama masih ada sehingga perlu dihapus atau ditangani sebelum menjalankan generator Next.js pada direktori saat ini.
 
 Langkah berikutnya: hapus README lama yang tersisa, lalu jalankan generator `create-next-app` di dalam `mini-event-management/` dengan JavaScript, App Router, Tailwind, ESLint, dan `src/` directory. Pemilik tetap menjalankan perintah dan meninjau hasilnya sendiri.
+
+
+## 19 November 2026 — Scaffold Next.js berhasil dijalankan
+
+Pemilik menjalankan verifikasi dari `C:\\cloud-computing-1\\mini-event-management`.
+
+Hasil:
+- `npx next --version` menghasilkan `Next.js v16.4.6`.
+- `package.json` menunjukkan project `mini-event-management`, `private: true`, scripts `dev`, `build`, `start`, `lint`; dependencies Next.js `16.4.6`, React `19.3.0`, React DOM `19.3.0`; Tailwind CSS `4.3.3` dan ESLint 9.
+- `src/app/` berisi `favicon.ico`, `globals.css`, `layout.js`, dan `page.js`.
+- `npm run dev` berhasil menjalankan Next.js 16.4.6 dengan Turbopack.
+- Port 3000 sedang digunakan oleh process ID 3684, sehingga Next.js otomatis memilih port 3001.
+- Server melaporkan `Local: http://localhost:3001` dan `Ready in 3.7s`.
+
+Status: scaffold Next.js sudah berhasil dibuat dan development server menyala. Belum ada bukti dari pemilik bahwa halaman sudah dibuka di browser, jadi verifikasi browser masih perlu dilakukan.
+
+Catatan: jangan menghentikan process ID 3684 atau aplikasi lain yang menggunakan port 3000 sebelum diketahui fungsinya. Untuk sementara gunakan `http://localhost:3001` untuk memeriksa halaman Next.js.
+
+Langkah berikutnya: buka URL lokal port 3001 di browser dan konfirmasi halaman tampil. Setelah itu, hentikan development server dengan `Ctrl+C` sebelum melanjutkan pemeriksaan file/config atau integrasi Docker. Jangan jalankan dua development server bersamaan.
