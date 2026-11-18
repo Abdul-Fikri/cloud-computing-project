@@ -16,11 +16,11 @@ function validate(file){
  return {ok:true};
 }
 export async function uploadGroupLogo(formData){
- const {group}=await requireGroup(),file=formData.get("logo"),check=validate(file);if(!check.ok)return check;
+ const {owner,group}=await requireGroup(),file=formData.get("logo"),check=validate(file);if(!check.ok)return check;
  const bytes=new Uint8Array(await file.arrayBuffer());
  if(!TYPES[file.type](bytes))return {ok:false,message:"Isi file tidak sesuai dengan format gambar."};
  const url=`/api/groups/${group.id}/logo?v=${randomUUID()}`;
- try{await getMysqlPool().execute("UPDATE `groups` SET logo_url=?,logo_mime=?,logo_data=? WHERE id=? AND owner_id=?",[url,file.type,Buffer.from(bytes),group.id,group.owner_id??(await requireGroup()).owner.id]);}
+ try{await getMysqlPool().execute("UPDATE `groups` SET logo_url=?,logo_mime=?,logo_data=? WHERE id=? AND owner_id=?",[url,file.type,Buffer.from(bytes),group.id,owner.id]);}
  catch(error){console.error("[uploadGroupLogo]",error.code,error.message);return {ok:false,message:"Logo gagal disimpan ke database. Pastikan migration 002_group_logo_blob_storage.sql sudah diterapkan."};}
  revalidatePath("/", "layout");return {ok:true,message:"Logo grup berhasil diperbarui."};
 }
