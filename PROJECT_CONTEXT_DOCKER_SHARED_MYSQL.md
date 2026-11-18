@@ -480,3 +480,15 @@ Pemilik menetapkan peran folder yang sudah tersedia untuk implementasi tugas:
 Pemilik juga menyediakan repository `mini-event-management` sebagai referensi aplikasi/domain Next.js. Repository referensi tersebut berbeda dari folder lokal `mini-event-management/` di workspace tugas; jangan menganggap folder lokal sudah berisi source Next.js hanya karena namanya sama.
 
 Ini adalah keputusan peran target, bukan klaim bahwa folder lokal sudah dimigrasikan. Sebelum perubahan implementasi, lakukan inventarisasi isi folder dan pastikan tidak ada file latihan yang perlu dipertahankan.
+
+
+## 17. Pembaruan Batas Izin Bantuan Implementasi — 19 November 2026
+
+Pemilik memperluas izin bantuan secara eksplisit: asisten boleh mengerjakan/mengubah **source code aplikasi web Next.js saja** di folder `mini-event-management/` (misalnya halaman, komponen, dan logika aplikasi). Asisten tetap tidak boleh mengubah konfigurasi implementasi yang menjadi tanggung jawab pemilik, termasuk Docker Compose, Dockerfile, `.env`, konfigurasi MySQL/container/network/volume, serta konfigurasi aplikasi lainnya. Folder `praktek-docker/` juga tetap dikelola pemilik kecuali ada izin baru.
+
+Pembagian kerja:
+- Asisten: source code web Next.js pada `mini-event-management/`.
+- Pemilik: konfigurasi Docker dan container, MySQL, environment, serta implementasi PHP pada `praktek-docker/`.
+- Integrasi dan pengujian dilakukan bersama dengan instruksi bertahap.
+
+Batas akses teknis: workspace lokal Windows `C:\\cloud-computing-1` tidak tersedia langsung untuk diedit dari sesi ini. Scaffold Next.js yang baru dibuat pemilik masih berada di komputer lokal dan belum terbukti sudah di-push ke repository GitHub. Agar asisten dapat mengedit source code tersebut tanpa menimpa konfigurasi atau scaffold lokal, pemilik perlu mengirimkan scaffold terbaru ke branch repository terlebih dahulu (atau menyediakan file source yang relevan). Asisten tidak boleh mengklaim telah mengedit file lokal yang tidak dapat diakses.
