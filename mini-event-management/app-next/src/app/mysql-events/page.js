@@ -103,7 +103,7 @@ export default function MysqlEventsPage() {
               Nama event *
               <input
                 required
-                maxLength={150}
+                maxLength={160}
                 name="name"
                 value={form.name}
                 onChange={updateField}
