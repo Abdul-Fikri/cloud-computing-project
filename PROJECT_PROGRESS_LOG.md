@@ -136,3 +136,109 @@ Pemeriksaan berikutnya yang masih diperlukan:
 4. Bila perlu, bandingkan file terkait di `praktek-docker`; sejauh ini yang terverifikasi identik hanya struktur dan nama file, belum isi seluruh file.
 
 **Titik terakhir:** isi Compose, Dockerfile PHP, dan index.php dari folder `mini-event-management` telah dibagikan dan dianalisis. Belum ada implementasi proyek baru yang dibuat atau dijalankan.
+
+
+## 19 November 2026 — Pemeriksaan konfigurasi Nginx dan PHP
+
+Pemilik membagikan isi konfigurasi Nginx dan PHP dari folder `mini-event-management`. Catatan berikut didasarkan pada isi file yang dibagikan, bukan hasil pengujian runtime.
+
+### 6.1 `build/nginx/nginx.conf`
+
+Temuan:
+- Worker berjalan sebagai user `nginx`.
+- `worker_processes auto`.
+- Error log utama diarahkan ke `/var/log/nginx/error.log` dengan level `notice`.
+- `worker_connections 1024`.
+- Memuat MIME types dari `/etc/nginx/mime.types`.
+- Default content type adalah `application/octet-stream`.
+- Mengaktifkan access log dengan format `main`.
+- `sendfile on`.
+- `keepalive_timeout 65000`.
+- Mengatur FastCGI buffers: `fastcgi_buffers 8 16k` dan `fastcgi_buffer_size 32k`.
+- Memuat konfigurasi virtual host dari `/etc/nginx/conf.d/*.conf`.
+
+Penjelasan:
+- File ini merupakan konfigurasi tingkat utama Nginx: worker, logging, HTTP defaults, dan pemuatan konfigurasi server.
+- Konfigurasi untuk meneruskan request PHP berada di file virtual host `localapp.conf`, bukan di file utama ini.
+
+### 6.2 `build/nginx/conf.d/localapp.conf`
+
+Temuan:
+- Mendefinisikan satu `server` yang listen pada port container `80`.
+- `server_name minorigroup.local`.
+- Default index: `index.php index.html`.
+- Document root: `/var/www`.
+- `client_max_body_size 0`, yang menonaktifkan pembatasan ukuran body request dari sisi directive ini.
+- Request dengan pola file PHP masuk ke `location ~ \.php$`.
+- Memeriksa file dengan `try_files $uri =404`.
+- Menggunakan FastCGI dengan `fastcgi_pass php:9000`.
+- Mengatur `fastcgi_index index.php`, memuat `fastcgi_params`, dan mengatur timeout baca 900 detik.
+- Mengirim `SCRIPT_FILENAME` dan `PATH_INFO` ke PHP-FPM.
+- Untuk route umum, `try_files $uri $uri/ /index.php?$query_string` mengarahkan request yang tidak cocok ke front controller `index.php`.
+- Ada konfigurasi FastCGI cache yang masih berupa komentar, sehingga tidak aktif.
+
+Alur request yang dapat disimpulkan:
+1. Browser mengirim HTTP request ke port host yang dipetakan ke Nginx.
+2. Nginx melayani file statis langsung dari document root `/var/www`.
+3. Untuk file PHP, Nginx meneruskan request melalui FastCGI ke hostname service Compose `php` pada port internal `9000`.
+4. PHP-FPM memproses script dan mengembalikan hasil ke Nginx.
+5. Nginx mengirim response HTTP ke browser.
+
+Konsep penting:
+- `php:9000` adalah komunikasi antarkontainer melalui DNS service Compose, bukan alamat localhost.
+- Port 9000 adalah port FastCGI internal PHP-FPM, bukan port HTTP yang dibuka langsung ke browser.
+- Nginx dan PHP-FPM sama-sama memetakan folder source `htdocs` ke path `/var/www`, sehingga lokasi script yang dilihat kedua container konsisten.
+- `server_name minorigroup.local` adalah nama host virtual yang diharapkan konfigurasi; belum ada bukti bahwa DNS/hosts lokal sudah disetel atau diuji.
+
+Catatan keamanan/konfigurasi:
+- `client_max_body_size 0` membuat Nginx tidak membatasi ukuran body pada directive tersebut. Ini bukan default yang sebaiknya disalin tanpa kebutuhan.
+- Timeout 900 detik sangat panjang untuk aplikasi sederhana dan tidak perlu diadopsi otomatis.
+- Belum ada bukti bahwa HTTPS aktif. Compose memetakan port host 443, tetapi server block yang dibagikan hanya menunjukkan `listen 80`; konfigurasi TLS tidak terlihat pada file ini.
+
+### 6.3 `build/php/php.ini`
+
+Isi file PHP yang dibagikan mencakup beberapa konfigurasi berikut:
+- `post_max_size = 1024M`.
+- `upload_max_filesize = 1024M`.
+- `file_uploads = On`.
+- `max_file_uploads = 200`.
+- `allow_url_fopen = 1`.
+- `allow_url_include = 1`.
+- `extension=gd`.
+- `date.timezone = "Asia/Jakarta"`.
+- Pengaturan sesi antara lain `session.save_handler = files`, `session.gc_maxlifetime = 3600`, dan `session.use_strict_mode = 0`.
+- Ada bagian konfigurasi `Pdo_mysql` dan `MySQLi`, termasuk default port MySQLi `3306`. Keberadaan pengaturan di php.ini tidak dengan sendirinya membuktikan ekstensi PDO MySQL sudah terpasang pada image; itu bergantung pada build image/runtime.
+- Tidak terlihat konfigurasi password database yang diisi pada nilai `mysqli.default_pw`; nilainya kosong.
+
+Catatan analisis:
+- Zona waktu PHP disetel ke Asia/Jakarta.
+- Batas upload 1 GB dan jumlah 200 file merupakan konfigurasi sangat longgar untuk aplikasi tugas sederhana; jangan menyalinnya tanpa alasan.
+- `allow_url_include = 1` mengaktifkan kemampuan include file dari URL dan berisiko memperluas permukaan serangan. Untuk proyek baru, jangan aktifkan kecuali ada kebutuhan khusus yang benar-benar dipahami; default aman adalah tidak mengaktifkannya.
+- `session.use_strict_mode = 0` tidak mengaktifkan strict session mode. Untuk aplikasi baru, pertimbangkan pengaturan sesi yang lebih aman.
+- `extension=gd` meminta ekstensi GD dimuat; pastikan ekstensi benar-benar tersedia pada image sebelum mengandalkan fitur image processing.
+- File ini adalah konfigurasi PHP lama yang panjang. Kita hanya mengambil pengaturan yang relevan untuk memahami latihan; tidak perlu menyalin seluruh php.ini ke proyek baru.
+
+### 6.4 Kesimpulan pemeriksaan Nginx/PHP
+
+Konfigurasi lama mengonfirmasi pola PHP-FPM + Nginx:
+- Nginx menangani HTTP pada port 80.
+- Request PHP diteruskan melalui FastCGI ke `php:9000`.
+- PHP-FPM menjalankan kode PHP dari folder source yang di-mount bersama.
+- Nginx melakukan fallback route ke `index.php` untuk pola front controller.
+
+Untuk proyek tugas baru, jika kita memilih image PHP Apache, Apache akan menangani HTTP dan mengeksekusi PHP di dalam container aplikasi PHP yang sama. Dengan demikian, tidak diperlukan container Nginx tambahan dan rancangan tetap memiliki tiga service inti: Next.js, PHP Apache, dan MySQL.
+
+Belum ada container latihan yang dijalankan ulang, diubah, atau dihentikan dalam pemeriksaan ini. Belum ada implementasi baru yang dibuat.
+
+### 6.5 Status pemeriksaan latihan lama
+
+| File | Status |
+|---|---|
+| `docker-compose.yaml` | Isi diperiksa |
+| `build/php/Dockerfile` | Isi diperiksa |
+| `htdocs/index.php` | Isi diperiksa |
+| `build/nginx/nginx.conf` | Isi diperiksa |
+| `build/nginx/conf.d/localapp.conf` | Isi diperiksa |
+| `build/php/php.ini` | Isi diperiksa dari teks yang dibagikan |
+
+**Titik lanjut:** pemeriksaan konfigurasi utama latihan lama selesai. Tahap berikutnya adalah memulai penyiapan workspace proyek baru secara terpisah, tanpa mengubah dua folder latihan yang ada. Sebelum membuat folder, pastikan lokasi root repository dan nama folder baru disepakati.
