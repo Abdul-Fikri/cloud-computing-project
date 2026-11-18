@@ -444,3 +444,51 @@ File yang akan diperiksa:
 - `mini-event-management/htdocs/index.php`
 
 Hasil pemeriksaan isi file tersebut belum tersedia dan belum boleh diasumsikan.
+
+
+## 15. Keputusan Struktur Workspace — 19 November 2026
+
+Pemilik mengklarifikasi bahwa `C:\\cloud-computing-1` merupakan folder induk proyek yang memang menjadi root repository. Folder `mini-event-management/` dan `praktek-docker/` adalah dua folder proyek/latihan container yang sudah ada dan harus tetap berada di root tersebut. Folder untuk konfigurasi/inisialisasi database bersama akan ditambahkan langsung di root sebagai `database/` (dengan subfolder `init/` untuk SQL schema). File `docker-compose.yml` untuk orkestrasi tiga service juga ditempatkan di root agar seluruh komponen tidak tersebar ke folder induk baru.
+
+Struktur target yang disepakati secara konseptual:
+
+```text
+C:\\cloud-computing-1\\
+├── mini-event-management\\   # dipertahankan
+├── praktek-docker\\           # dipertahankan
+├── database\\                 # folder baru untuk MySQL init/schema
+│   └── init\\
+├── docker-compose.yml         # konfigurasi orkestrasi di root
+├── .env.example
+├── .gitignore
+├── README.md
+├── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
+└── PROJECT_PROGRESS_LOG.md
+```
+
+Catatan: struktur di atas adalah target konseptual; folder/file baru belum dibuat. Penempatan Dockerfile dan source aplikasi akan mengikuti pemeriksaan isi aktual kedua folder serta keputusan implementasi berikutnya. Tidak ada folder yang dipindahkan, dihapus, atau diubah pada keputusan ini.
+
+
+## 16. Penetapan Peran Dua Folder Aplikasi — 19 November 2026
+
+Pemilik menetapkan peran folder yang sudah tersedia untuk implementasi tugas:
+- `mini-event-management/` akan menjadi aplikasi 1 berbasis Next.js/JavaScript. Folder ini sebelumnya disalin dari `praktek-docker/`, sehingga isinya saat ini masih berupa latihan PHP. Isi PHP lama perlu ditangani secara hati-hati saat tahap migrasi; jangan menghapus atau menimpa sebelum inventarisasi dan persetujuan langkahnya.
+- `praktek-docker/` akan menjadi aplikasi 2 berbasis PHP dan dipertahankan sebagai aplikasi PHP.
+- `database/` di root akan menampung SQL inisialisasi/schema MySQL bersama.
+- `docker-compose.yml` di root akan mengorkestrasi service Next.js, PHP, dan satu MySQL.
+
+Pemilik juga menyediakan repository `mini-event-management` sebagai referensi aplikasi/domain Next.js. Repository referensi tersebut berbeda dari folder lokal `mini-event-management/` di workspace tugas; jangan menganggap folder lokal sudah berisi source Next.js hanya karena namanya sama.
+
+Ini adalah keputusan peran target, bukan klaim bahwa folder lokal sudah dimigrasikan. Sebelum perubahan implementasi, lakukan inventarisasi isi folder dan pastikan tidak ada file latihan yang perlu dipertahankan.
+
+
+## 17. Pembaruan Batas Izin Bantuan Implementasi — 19 November 2026
+
+Pemilik memperluas izin bantuan secara eksplisit: asisten boleh mengerjakan/mengubah **source code aplikasi web Next.js saja** di folder `mini-event-management/` (misalnya halaman, komponen, dan logika aplikasi). Asisten tetap tidak boleh mengubah konfigurasi implementasi yang menjadi tanggung jawab pemilik, termasuk Docker Compose, Dockerfile, `.env`, konfigurasi MySQL/container/network/volume, serta konfigurasi aplikasi lainnya. Folder `praktek-docker/` juga tetap dikelola pemilik kecuali ada izin baru.
+
+Pembagian kerja:
+- Asisten: source code web Next.js pada `mini-event-management/`.
+- Pemilik: konfigurasi Docker dan container, MySQL, environment, serta implementasi PHP pada `praktek-docker/`.
+- Integrasi dan pengujian dilakukan bersama dengan instruksi bertahap.
+
+Batas akses teknis: workspace lokal Windows `C:\\cloud-computing-1` tidak tersedia langsung untuk diedit dari sesi ini. Scaffold Next.js yang baru dibuat pemilik masih berada di komputer lokal dan belum terbukti sudah di-push ke repository GitHub. Agar asisten dapat mengedit source code tersebut tanpa menimpa konfigurasi atau scaffold lokal, pemilik perlu mengirimkan scaffold terbaru ke branch repository terlebih dahulu (atau menyediakan file source yang relevan). Asisten tidak boleh mengklaim telah mengedit file lokal yang tidak dapat diakses.
