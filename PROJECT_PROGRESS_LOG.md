@@ -620,3 +620,50 @@ Commit implementasi tahap ini:
 ### 18.3 Langkah berikutnya
 
 Lanjutkan migrasi per domain: dashboard/events, members/committee/divisions, rundown/tasks, procurement/finance, invitations, group logo, public join/panitia pages, export API, dan semua Server Component data reads. Setelah itu jalankan build/lint dan pengujian manual tiap alur.
+
+
+### 18.4 Migrasi domain fitur dan query halaman — 18 November 2026
+
+Perubahan berikut telah masuk ke branch setelah fondasi autentikasi:
+- Server Actions MySQL: event, anggota, divisi, penugasan panitia, rundown, tugas/Kanban, kategori anggaran, transaksi keuangan, pengadaan, sinkronisasi pengadaan-keuangan, undangan dan klaim undangan.
+- Query halaman MySQL: dashboard, daftar event, edit event, daftar anggota, susunan panitia/divisi, rundown, tugas, pengadaan, keuangan, ruang kerja Panitia.
+- CSV export menggunakan query MySQL dan tetap melakukan escaping formula CSV.
+- Logo grup tidak lagi menggunakan Supabase Storage. File gambar (JPG/PNG/WebP, maks. 2 MB) disimpan sebagai BLOB pada MySQL dan disajikan melalui route Next.js `/api/groups/[id]/logo`.
+- Ditambahkan `database/migrations/002_group_logo_blob_storage.sql` untuk kolom logo BLOB pada tabel grup yang sudah dibuat.
+
+Commit penting tahap ini:
+- `825b0e6` — event actions.
+- `6fcde30` — member actions.
+- `9b977c7` — division actions.
+- `6d59dea` — event committee assignments.
+- `72a0ec8` — schedule actions.
+- `da46243` — task actions.
+- `a2992af` — finance actions.
+- `9e15cd2` — procurement actions dan transaksi sinkron.
+- `5450b50` — event committee page.
+- `283e919` / `c4301c6` — rundown/task pages.
+- `8654f33` / `7882362` — procurement/finance pages.
+- `7cbd073` — invitation claim flow.
+- `760ebd5` — MySQL BLOB group logo storage.
+- `523e61f` — CSV export.
+
+### 18.5 Batas validasi dan risiko migrasi data
+
+Status ini adalah **source-code migration in progress**, bukan pernyataan bahwa semua fitur telah teruji. Build belum dijalankan dari lingkungan lokal pemilik setelah perubahan-perubahan ini. Lakukan build sebelum mengandalkan kode.
+
+Penting: volume lokal sudah berisi tabel demo `events` versi sederhana (`id` numerik dan `event_date`), sedangkan schema aplikasi utama memakai UUID `id`, `start_date`, `end_date`, relasi grup, status, dan metadata event. `CREATE TABLE IF NOT EXISTS` pada schema awal tidak mengubah tabel lama. Karena itu:
+- Jangan jalankan schema/migrasi domain langsung pada volume aktif sebelum strategi migrasi tabel `events` disiapkan.
+- Jangan jalankan `docker compose down -v`.
+- Backup volume/database terlebih dahulu.
+- Rancang migrasi yang mempertahankan data demo, mengonversi data lama, dan menyesuaikan aplikasi PHP ke schema event penuh atau view kompatibel.
+- Migrasi logo 002 juga harus dijalankan hanya setelah tabel `groups` tersedia.
+
+Masih perlu diaudit/migrasi:
+- semua file yang masih mengimpor `@/lib/supabase/*` atau `createClient`, termasuk API, settings, dan kemungkinan komponen pendukung;
+- pengaturan grup selain logo (jika ada update action terpisah);
+- akses route privat dan role/authorization di seluruh halaman dan API;
+- validasi penuh schema SQL MySQL 8.4 serta constraint dan perilaku transaksi;
+- build Next.js, lint, dan skenario e2e semua alur Owner dan Panitia;
+- package dependencies dan environment example setelah seluruh import Supabase benar-benar hilang.
+
+Jangan hapus dependency/config Supabase atau mengklaim migrasi selesai sebelum audit residual dan build lulus.
