@@ -444,3 +444,39 @@ Asisten membuat branch `feat/shared-mysql-integration` pada repository `Abdul-Fi
 Commit branch terakhir: `0924b98d250a0bb90ae76a15d309895952c5171d`. Branch URL: https://github.com/Abdul-Fikri/mini-event-management/tree/feat/shared-mysql-integration. Belum ada PR/merge ke `main`, belum ada dependency `mysql2` yang ditambahkan ke `package.json`/lockfile, dan belum ada build atau koneksi MySQL yang diuji. Pemilik perlu menjalankan `npm install mysql2` pada clone repository asli setelah mengambil branch tersebut. Nama environment `DB_*` perlu disamakan dengan konfigurasi Docker Compose yang akan dibuat pemilik.
 
 Batas tanggung jawab: asisten mengubah source web Next.js saja pada repository asli. Pemilik tetap mengelola Dockerfile, Compose, `.env`, MySQL container, volume/network, konfigurasi, serta aplikasi PHP. Folder `praktek-docker/` pada repository tugas tidak disentuh.
+
+
+## 18 November 2026 — Clone aplikasi Next.js dan instalasi driver MySQL
+
+Pemilik melakukan clone repository aplikasi asli `Abdul-Fikri/mini-event-management` pada branch `feat/shared-mysql-integration`. Setelah koreksi lokasi workspace, repository ditempatkan di:
+
+`C:\\cloud-computing-1\\mini-event-management\\app-next`
+
+Verifikasi lokal yang dibagikan pemilik:
+- Branch aktif: `feat/shared-mysql-integration`.
+- Branch tracking: `origin/feat/shared-mysql-integration`.
+- Repository awal setelah clone: working tree clean.
+- Dependency Next.js berhasil dipasang dengan `npm install`.
+- Driver `mysql2@3.24.6` berhasil dipasang dan diverifikasi dengan `npm ls mysql2`.
+
+Pada awalnya perubahan `package.json` dan `package-lock.json` belum ter-commit. Pemilik kemudian menjalankan:
+- `git add package.json package-lock.json`
+- `git commit -m "chore: add mysql2 dependency"`
+- `git push origin feat/shared-mysql-integration`
+
+Hasil akhir yang dibagikan:
+- Commit terbaru: `f6aee6a` — `chore: add mysql2 dependency`.
+- Push berhasil memperbarui remote dari `0924b98` ke `f6aee6a`.
+- `git status`: branch up to date dengan origin dan working tree clean.
+
+Catatan teknis:
+- Source `src/lib/mysql.js` dan endpoint `src/app/api/health/mysql/route.js` telah tersedia sebelumnya pada branch fitur.
+- Connection pool membaca `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, dan `DB_PASSWORD`.
+- Endpoint health menjalankan `SELECT 1` dan mengembalikan status connected atau HTTP 503.
+- Belum ada bukti bahwa endpoint telah diuji terhadap instance MySQL aktif.
+- Konfigurasi lokal `.env.local` telah dibuat oleh pemilik dengan nilai sementara; kredensial tidak dicatat dalam dokumentasi.
+- Untuk koneksi dari container Compose, hostname database harus menggunakan nama service `mysql`; `localhost` hanya relevan untuk koneksi dari proses yang berjalan pada host ketika port database dipublikasikan.
+
+### Titik lanjut
+
+Sebelum menguji endpoint, siapkan dan jalankan satu service MySQL bersama pada root workspace `C:\\cloud-computing-1`, yang nantinya juga dipakai aplikasi PHP. Jangan membuat database/container terpisah untuk Next.js. Tahap MySQL Compose belum dimulai dan belum ada konfigurasi Docker implementasi baru yang dibuat dalam langkah ini.
