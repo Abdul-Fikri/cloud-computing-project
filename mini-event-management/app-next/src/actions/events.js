@@ -29,6 +29,20 @@ export async function saveEvent(id, _prev, formData) {
   if (!parsed.success) return { ...emptyState, message: "Periksa kembali isian Anda.", errors: fieldErrors(parsed.error), values };
 
   const payload = { ...parsed.data };
+  if (payload.coordinator_id) {
+    const [coordinators] = await pool.execute(
+      "SELECT id FROM members WHERE id = ? AND group_id = ? LIMIT 1",
+      [payload.coordinator_id, group.id]
+    );
+    if (!coordinators.length) {
+      return {
+        ...emptyState,
+        message: "Koordinator harus merupakan anggota dari grup ini.",
+        errors: { coordinator_id: "Pilih anggota dari grup ini." },
+        values,
+      };
+    }
+  }
   if (payload.status_mode === "automatic") payload.status = getEffectiveEventStatus(payload, today);
   const columns = ["name","description","category","start_date","end_date","planning_start_date","preparation_start_date","evaluation_end_date","location","status_mode","status","coordinator_id","target_budget"];
   const vals = columns.map((key) => payload[key] ?? null);
