@@ -367,3 +367,17 @@ Implikasi terhadap rencana:
 - Compose tingkat root dan folder `database/` belum dibuat.
 
 Belum ada source code atau konfigurasi implementasi yang diubah. Langkah berikutnya adalah membuat backup folder latihan `mini-event-management` sebelum menyiapkan aplikasi Next.js di lokasi tersebut.
+
+
+## 19 November 2026 — Folder lama mini-event-management dibersihkan
+
+Pemilik menjalankan perintah CMD dari `C:\\cloud-computing-1`:
+- `rmdir /s mini-event-management\\build` dan mengonfirmasi penghapusan.
+- `rmdir /s mini-event-management\\htdocs` dan mengonfirmasi penghapusan.
+- `del mini-event-management\\docker-compose.yaml`.
+
+Verifikasi `dir mini-event-management /a` menunjukkan folder hanya menyisakan `README.md` (1.747 bytes) selain entri direktori `.` dan `..`.
+
+Konsekuensi yang disepakati: latihan PHP/Nginx di folder `mini-event-management/` dihapus langsung tanpa backup sesuai keputusan pemilik. Folder `praktek-docker/` tidak disentuh. Belum ada scaffold Next.js yang dibuat, dan README lama masih ada sehingga perlu dihapus atau ditangani sebelum menjalankan generator Next.js pada direktori saat ini.
+
+Langkah berikutnya: hapus README lama yang tersisa, lalu jalankan generator `create-next-app` di dalam `mini-event-management/` dengan JavaScript, App Router, Tailwind, ESLint, dan `src/` directory. Pemilik tetap menjalankan perintah dan meninjau hasilnya sendiri.
