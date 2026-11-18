@@ -37,6 +37,12 @@ docker compose ps
 
 Jangan menjalankan `docker compose down -v` jika ingin mempertahankan data MySQL.
 
+## Integrasi event PHP ↔ Next.js
+
+Kedua aplikasi menggunakan tabel `events` yang sama pada schema Mini Event Management. Untuk demo lintas aplikasi, tentukan grup Owner yang sama melalui `PHP_DEFAULT_GROUP_ID` di file `.env` lokal. Nilainya adalah ID grup yang dibuat dari onboarding aplikasi Next.js. PHP dan endpoint demo Next.js membatasi operasi event ke grup tersebut.
+
+Jangan mengekspos aplikasi demo ini ke internet publik tanpa menambahkan autentikasi/otorisasi untuk PHP. Konfigurasi group ID hanya membatasi cakupan data; konfigurasi ini bukan pengganti autentikasi pengguna.
+
 ## Catatan database
 
 Skrip pada `database/init/` hanya dijalankan otomatis oleh image MySQL ketika direktori data masih kosong. Untuk volume yang sudah pernah dipakai, perubahan schema harus diterapkan sebagai migrasi terencana setelah backup; menambahkan file init baru tidak otomatis mengubah volume lama.
