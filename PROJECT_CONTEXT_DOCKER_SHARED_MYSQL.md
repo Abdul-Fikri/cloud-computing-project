@@ -444,3 +444,26 @@ File yang akan diperiksa:
 - `mini-event-management/htdocs/index.php`
 
 Hasil pemeriksaan isi file tersebut belum tersedia dan belum boleh diasumsikan.
+
+
+## 15. Keputusan Struktur Workspace — 19 November 2026
+
+Pemilik mengklarifikasi bahwa `C:\\cloud-computing-1` merupakan folder induk proyek yang memang menjadi root repository. Folder `mini-event-management/` dan `praktek-docker/` adalah dua folder proyek/latihan container yang sudah ada dan harus tetap berada di root tersebut. Folder untuk konfigurasi/inisialisasi database bersama akan ditambahkan langsung di root sebagai `database/` (dengan subfolder `init/` untuk SQL schema). File `docker-compose.yml` untuk orkestrasi tiga service juga ditempatkan di root agar seluruh komponen tidak tersebar ke folder induk baru.
+
+Struktur target yang disepakati secara konseptual:
+
+```text
+C:\\cloud-computing-1\\
+├── mini-event-management\\   # dipertahankan
+├── praktek-docker\\           # dipertahankan
+├── database\\                 # folder baru untuk MySQL init/schema
+│   └── init\\
+├── docker-compose.yml         # konfigurasi orkestrasi di root
+├── .env.example
+├── .gitignore
+├── README.md
+├── PROJECT_CONTEXT_DOCKER_SHARED_MYSQL.md
+└── PROJECT_PROGRESS_LOG.md
+```
+
+Catatan: struktur di atas adalah target konseptual; folder/file baru belum dibuat. Penempatan Dockerfile dan source aplikasi akan mengikuti pemeriksaan isi aktual kedua folder serta keputusan implementasi berikutnya. Tidak ada folder yang dipindahkan, dihapus, atau diubah pada keputusan ini.
