@@ -2,7 +2,7 @@
 
 Repository tugas Cloud Computing. Versi target menjalankan aplikasi Mini Event Management (Next.js), aplikasi PHP, dan satu MySQL bersama melalui Docker Compose.
 
- > **Status migrasi:** sedang dikerjakan. Source aplikasi utama sudah banyak dialihkan ke MySQL, tetapi build dan pengujian end-to-end setelah batch migrasi terbaru belum selesai. Demo lintas aplikasi kini memakai schema event utama yang sama; belum diuji ulang pada schema final ini.
+> **Status migrasi:** sedang dikerjakan. Source aplikasi utama sudah banyak dialihkan ke MySQL, tetapi build dan pengujian end-to-end setelah batch migrasi terbaru belum selesai. Demo lintas aplikasi kini memakai schema event utama yang sama; belum diuji ulang pada schema final ini.
 
 ## Target arsitektur
 
@@ -15,7 +15,7 @@ Repository tugas Cloud Computing. Versi target menjalankan aplikasi Mini Event M
 
 Autentikasi Owner/Panitia, onboarding grup, event, anggota dan susunan panitia, divisi, rundown, tugas, pengadaan, kategori anggaran, transaksi keuangan, undangan anggota, serta logo grup.
 
-UI dan validasi aplikasi akan dipertahankan sejauh memungkinkan. Supabase Auth, PostgREST queries, RPC, dan Storage perlu diganti dengan layanan MySQL/server-side yang setara.
+UI dan validasi aplikasi dipertahankan sejauh memungkinkan. Jalur utama autentikasi, query domain, dan penyimpanan logo sudah dialihkan ke MySQL/server-side. Audit sisa referensi Supabase, build, dan pengujian fitur menyeluruh masih berlangsung.
 
 ## Struktur penting
 
