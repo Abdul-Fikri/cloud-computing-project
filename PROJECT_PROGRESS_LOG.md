@@ -754,3 +754,19 @@ Pemeriksaan lanjutan menemukan ada file init lama kedua, `database/init/001_crea
 Environment `PHP_DEFAULT_GROUP_ID` sekarang diteruskan ke kedua service aplikasi (PHP dan Next.js), sehingga endpoint demo Next.js dan PHP menggunakan group scope yang sama. Batas nama event pada form demo Next.js juga diselaraskan menjadi 160 karakter sesuai kolom schema utama.
 
 **Status:** source dan dokumentasi sudah diperbarui, tetapi belum dilakukan build Docker, validasi SQL pada MySQL 8.4, atau pengujian integrasi ulang. Volume existing tetap tidak disentuh.
+
+
+### 18.13 Draft jalur upgrade aman untuk volume demo lama — 18 November 2026
+
+Ditambahkan `database/migrations/003_import_legacy_demo_events.sql` untuk memindahkan baris dari `events_legacy` ke tabel `events` schema utama setelah schema penuh diterapkan dan Owner group tersedia.
+
+Rancangan upgrade yang didokumentasikan:
+1. Backup database dan verifikasi backup.
+2. Rename tabel lama menjadi `events_legacy` (tanpa drop).
+3. Terapkan migration 001 untuk membuat schema penuh.
+4. Buat akun Owner/grup melalui Next.js.
+5. Set `PHP_DEFAULT_GROUP_ID`.
+6. Jalankan migration 003 setelah mengganti placeholder group UUID.
+7. Verifikasi jumlah baris legacy, mapping, dan hasil import.
+
+Migration 003 menggunakan tabel mapping berdasarkan ID numerik lama agar impor ulang tidak menggandakan event. Ini masih draft dan **belum diuji** pada MySQL 8.4 atau volume pemilik. Jangan jalankan sampai backup, schema, dan urutan migrasi diuji di salinan database.
