@@ -589,3 +589,34 @@ Temuan:
 6. Ganti Supabase Storage logo dengan penyimpanan yang tidak menambah service Docker.
 7. Jalankan build dan pengujian fitur, kemudian verifikasi PHP ↔ Next.js pada tabel domain yang sama.
 8. Perbarui dokumentasi dan skenario demo setelah validasi selesai.
+
+
+### 18.1 Implementasi tahap fondasi — 18 November 2026
+
+Perubahan source code berikut sudah di-commit ke branch tugas:
+- `src/lib/mysql-auth.js`: primitive registrasi/login dengan hash password scrypt, token sesi acak, penyimpanan hash token pada `auth_sessions`, cookie HttpOnly/SameSite=Lax, dan expiry tujuh hari.
+- `src/lib/auth.js`: lookup Owner, grup Owner, dan Panitia melalui sesi/tabel MySQL.
+- `src/actions/auth.js`: register, login, logout diarahkan ke helper autentikasi MySQL.
+- `src/actions/groups.js`: pembuatan grup Owner menggunakan prepared statement MySQL.
+- `src/proxy.js`: inisialisasi Supabase di proxy dihilangkan; otorisasi dimaksudkan dilakukan oleh guard server-side.
+
+Commit implementasi tahap ini:
+- `ae2c6a3` — primitive autentikasi/session MySQL.
+- `0897aef` — lookup auth dan guard MySQL.
+- `24b7172` — register/login/logout MySQL.
+- `8cd956c` — hapus Supabase proxy dependency.
+- `0f60577` — create group MySQL.
+
+**Peringatan status:** ini baru fondasi migrasi, belum aplikasi yang berfungsi penuh. Sebagian besar Server Actions, query halaman Server Components, undangan, logo Storage, RPC pengadaan-keuangan, serta sinkronisasi divisi masih menggunakan Supabase. Jangan melakukan demo aplikasi utama atau menyatakan migrasi selesai sampai semua ketergantungan itu diganti.
+
+### 18.2 Catatan teknis yang harus diverifikasi sebelum build
+
+- SQL schema draft belum diuji pada MySQL 8.4. Periksa sintaks, foreign key, perilaku cascade/set-null, collation email, dan kompatibilitas `CHECK`.
+- `database/migrations/001_mini_event_management_mysql.sql` bukan otomatis dieksekusi pada volume lama. Volume lokal saat ini sudah pernah diinisialisasi dan memiliki tabel demo `events`; jangan reset/hapus volume. Rancang migrasi additive terpisah dan backup terlebih dahulu.
+- `users`, `auth_sessions`, dan `members.auth_user_id` diperlukan untuk pengganti Supabase Auth. Registrasi lokal saat ini dianggap langsung terverifikasi; tidak ada email-verification flow yang dimigrasikan pada tahap fondasi ini.
+- Proxy hanya meneruskan request. Semua halaman/action terlindungi wajib memanggil guard server-side yang sesuai; lakukan audit seluruh route agar tidak ada route privat tanpa guard.
+- File Supabase lama masih berada di repository dan package dependencies belum dihapus. Hapus hanya setelah pencarian seluruh import dan pengujian build membuktikan tidak ada ketergantungan tersisa.
+
+### 18.3 Langkah berikutnya
+
+Lanjutkan migrasi per domain: dashboard/events, members/committee/divisions, rundown/tasks, procurement/finance, invitations, group logo, public join/panitia pages, export API, dan semua Server Component data reads. Setelah itu jalankan build/lint dan pengujian manual tiap alur.
