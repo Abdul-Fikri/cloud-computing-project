@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   CONSTRAINT transactions_category_event_fk FOREIGN KEY (category_id, event_id) REFERENCES budget_categories(id, event_id),
   CONSTRAINT transactions_recorded_by_fk FOREIGN KEY (recorded_by) REFERENCES members(id) ON DELETE SET NULL,
   CONSTRAINT transactions_procurement_fk FOREIGN KEY (procurement_item_id) REFERENCES procurement_items(id) ON DELETE SET NULL,
-  CONSTRAINT transactions_amount_chk CHECK (amount > 0),
+  CONSTRAINT transactions_amount_chk CHECK (amount > 0)
   -- The application writes procurement-linked transactions as expenses.
   -- MySQL 8.4 disallows CHECK constraints on a column used by an ON DELETE SET NULL FK.
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
