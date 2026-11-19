@@ -2,17 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { randomUUID } from "node:crypto";
+import { getMysqlPool } from "@/lib/mysql";
 import { requireOwner } from "@/lib/auth";
 import { groupSchema } from "@/lib/validators/group";
 import { fieldErrors, readForm } from "@/lib/validators/helpers";
 
 export async function createGroup(prevState, formData) {
-  // Wajib login. owner_id selalu diambil dari sesi, TIDAK dari input form.
   const owner = await requireOwner();
-
   const values = readForm(formData, ["name", "category", "description"]);
   const parsed = groupSchema.safeParse(values);
+
   if (!parsed.success) {
     return {
       ok: false,
@@ -22,20 +22,13 @@ export async function createGroup(prevState, formData) {
     };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("groups").insert({
-    owner_id: owner.id,
-    name: parsed.data.name,
-    category: parsed.data.category,
-    description: parsed.data.description,
-  });
-
-  if (error) {
-    // 23505 = unique_violation pada groups.owner_id: Owner sudah punya grup.
-    // Batas "satu grup per Owner" dijaga oleh database, bukan hanya oleh UI.
-    if (error.code === "23505") {
-      redirect("/dashboard");
-    }
+  try {
+    await getMysqlPool().execute(
+      "INSERT INTO `groups` (id, owner_id, name, category, description) VALUES (?, ?, ?, ?, ?)",
+      [randomUUID(), owner.id, parsed.data.name, parsed.data.category, parsed.data.description]
+    );
+  } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") redirect("/dashboard");
     console.error("[createGroup]", error.code, error.message);
     return {
       ok: false,

@@ -1,15 +1,14 @@
-import { getEventContext } from "@/lib/events/get-event-context";
+import {getEventContext} from "@/lib/events/get-event-context";
+import {getMysqlPool} from "@/lib/mysql";
 import FinanceSection from "@/components/events/FinanceSection";
-export const metadata = { title: "Keuangan Event" };
-export default async function EventFinancePage({ params, searchParams }) {
-  const { id } = await params;
-  const query = await searchParams;
-  const { group, event, supabase } = await getEventContext(id);
-  const [{ data: categories }, { data: transactions }, { data: members }, { data: commitments }] = await Promise.all([
-    supabase.from("budget_categories").select("*").eq("event_id", id).eq("group_id", group.id).order("name"),
-    supabase.from("transactions").select("*").eq("event_id", id).eq("group_id", group.id).order("trx_date", { ascending: false }).order("created_at", { ascending: false }),
-    supabase.from("members").select("id,full_name").eq("group_id", group.id).order("full_name"),
-    supabase.from("procurement_items").select("id,name,quantity,unit,est_unit_price,category_id").eq("event_id", id).eq("group_id", group.id).eq("status", "ordered").order("created_at"),
-  ]);
-  return <FinanceSection eventId={id} targetBudget={event.target_budget} categories={categories ?? []} transactions={transactions ?? []} members={members ?? []} commitments={commitments ?? []} financeError={query?.finance_error ?? ""}/>;
+export const metadata={title:"Keuangan Event"};
+export default async function EventFinancePage({params,searchParams}){
+ const {id}=await params,query=await searchParams,{group,event}=await getEventContext(id),pool=getMysqlPool();
+ const [[categories],[transactions],[members],[commitments]]=await Promise.all([
+  pool.execute("SELECT * FROM budget_categories WHERE event_id=? AND group_id=? ORDER BY name",[id,group.id]),
+  pool.execute("SELECT * FROM transactions WHERE event_id=? AND group_id=? ORDER BY trx_date DESC,created_at DESC",[id,group.id]),
+  pool.execute("SELECT id,full_name FROM members WHERE group_id=? ORDER BY full_name",[group.id]),
+  pool.execute("SELECT id,name,quantity,unit,est_unit_price,category_id FROM procurement_items WHERE event_id=? AND group_id=? AND status='ordered' ORDER BY created_at",[id,group.id])
+ ]);
+ return <FinanceSection eventId={id} targetBudget={event.target_budget} categories={categories} transactions={transactions} members={members} commitments={commitments} financeError={query?.finance_error??""}/>;
 }

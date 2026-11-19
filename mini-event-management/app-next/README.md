@@ -1,91 +1,37 @@
-# Mini Event Management System
+# Mini Event Management — Docker/MySQL Variant
 
-Aplikasi web untuk membantu organisasi dan kepanitiaan mengelola event skala kecil: anggota, susunan panitia, rundown, tugas, pengadaan, keuangan, dan ekspor data.
-
-> Status: aplikasi telah dipublikasikan melalui Vercel. Fitur yang tercatat di dokumentasi tetap perlu diuji pada environment aktual sebelum dianggap terverifikasi.
+Ini adalah salinan aplikasi Mini Event Management yang dimigrasikan khusus untuk repository tugas Cloud Computing. **Jangan menyamakan konfigurasi branch ini dengan deployment production atau repository aplikasi asal.**
 
 ## Tech stack
-
-- Next.js 16.4.5 App Router, React 19.3.0, JavaScript.
+- Next.js 16 App Router, React 19, JavaScript.
 - Tailwind CSS 4.
-- Supabase Auth, PostgreSQL, dan Storage.
-- Supabase JavaScript Client dan `@supabase/ssr` untuk akses data (tanpa ORM saat ini).
-- Zod 4 untuk validasi; lucide-react untuk ikon.
+- MySQL 8.4 melalui `mysql2/promise`.
+- Autentikasi berbasis sesi MySQL (cookie HttpOnly) dan password hash scrypt.
+- Zod 4 untuk validasi.
 
-## Getting started
+## Environment
+Konfigurasi lokal disediakan melalui `.env.example` pada root repository. Untuk Docker Compose, service Next.js dan PHP terhubung ke service database bernama `mysql` pada network bersama. Jangan commit file `.env` atau kredensial.
 
-Prasyarat: Node.js yang kompatibel dengan Next.js 16, npm, dan project Supabase.
-
+## Menjalankan lokal
+Dari root repository:
 ```bash
-npm install
+docker compose config
+docker compose up --build -d
+docker compose ps
 ```
+Jangan gunakan `docker compose down -v` karena akan menghapus named volume database.
 
-Buat `.env.local` di root project:
+## Fitur
+Autentikasi Owner/Panitia, onboarding grup, event, anggota, susunan panitia, divisi, rundown, tugas, pengadaan, keuangan, undangan anggota, dan logo grup tersimpan di MySQL.
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+## Integrasi PHP ↔ Next.js
+Kedua aplikasi berbagi tabel `events`. Variabel `PHP_DEFAULT_GROUP_ID` membatasi demo ke satu grup Owner. Endpoint demo tidak memiliki autentikasi pengguna dan hanya boleh dipakai di lingkungan lokal/terisolasi.
 
-# Dibutuhkan untuk upload/hapus logo grup (server-only; gunakan salah satu)
-SUPABASE_SECRET_KEY=
-# Alternatif legacy:
-# SUPABASE_SERVICE_ROLE_KEY=
-```
+## Validasi
+GitHub Actions menjalankan `npm ci`, ESLint, build Next.js, PHP syntax lint, dan validasi konfigurasi Docker Compose. Status workflow terbaru perlu diperiksa sebelum merge. Pengujian lokal menyeluruh dan migrasi volume lama masih menjadi prasyarat merge.
 
-Isi sendiri dari Supabase Dashboard. Variabel `SUPABASE_SECRET_KEY` atau `SUPABASE_SERVICE_ROLE_KEY` hanya diperlukan untuk operasi logo grup. Simpan key tersebut sebagai environment variable server-only di Vercel dan lokal; **jangan** memakai prefix `NEXT_PUBLIC_`, commit nilainya, atau membagikannya di chat. Jangan gunakan kedua key privileged di browser.
-
-```bash
-npm run dev
-```
-
-Buka http://localhost:3000.
-
-### Supabase Storage untuk logo grup
-
-Upload dan penghapusan logo dijalankan melalui Server Actions setelah server memverifikasi Owner. Operasi Storage memakai privileged key server-side karena jalur upload browser sebelumnya ditolak oleh RLS; pembaruan `groups.logo_url` tetap memakai client session Owner. Bucket `group-logos` bersifat public untuk pengiriman gambar, bukan untuk upload publik. Detail alurnya ada di [Project Handbook](docs/PROJECT_HANDBOOK.md) dan [Database & Migrations](docs/DATABASE_AND_MIGRATIONS.md).
-
-## Scripts
-
-| Command | Fungsi |
-|---|---|
-| `npm run dev` | Development server |
-| `npm run lint` | ESLint |
-| `npm run build` | Production build |
-| `npm run start` | Menjalankan hasil build |
-
-## Documentation
-
-1. [Project Handbook](docs/PROJECT_HANDBOOK.md) — tujuan produk, fitur, arsitektur, role, dan alur.
-2. [Database & Migrations](docs/DATABASE_AND_MIGRATIONS.md) — schema, migration, dan prosedur Supabase.
-3. [Implementation Status](docs/IMPLEMENTATION_STATUS.md) — status implementasi, batasan, dan checklist pengujian.
-4. [Pemetaan Rubrik UAS](docs/IMPLEMENTASI-RUBRIK-UAS.md) — bukti implementasi terhadap empat kriteria penilaian.
-5. [Resources](docs/RESOURCES.md) — tautan project dan referensi resmi.
-
-## Repository structure
-
-```text
-src/
-  actions/       # Server Actions
-  app/           # App Router pages, layouts, route handlers
-  components/    # UI components
-  lib/           # auth, Supabase clients, validators, helpers
-  proxy.js       # Next.js 16 Proxy convention
-supabase/
-  schema.sql     # Initial schema; bukan migration incremental
-  migrations/    # Perubahan database bertahap
-docs/            # Dokumentasi resmi produk dan engineering
-```
-
-## Deployment
-
-Production application: https://mini-event-management-gules.vercel.app
-
-Vercel digunakan untuk deployment. Pemilik project mengelola deployment dan environment variables. Jangan melakukan deployment atau mengubah konfigurasi production tanpa instruksi eksplisit.
-
-## Engineering notes
-
-- Root aplikasi adalah repository root; source berada di `src/`.
-- Jangan membuat ulang folder legacy `event-management/`.
-- Jangan menjalankan ulang `supabase/schema.sql` pada database yang sudah berisi tabel.
-- Jangan mengubah RLS, migration, atau data production tanpa review dan persetujuan.
-- Dokumentasi di `docs/` ditujukan untuk developer dan pemelihara project. Instruksi kerja lokal untuk coding assistant, bila digunakan, dikelola terpisah dan tidak menjadi bagian dari dokumentasi produk.
+## Batasan keselamatan
+- Perubahan hanya untuk repository tugas Cloud Computing.
+- Jangan mengubah atau deploy repository production `Abdul-Fikri/mini-event-management`.
+- Jangan reset atau menghapus volume MySQL yang sudah berisi data.
+- Direktori `supabase/` yang tersisa menyimpan schema/migration historis aplikasi asal; runtime branch ini menggunakan MySQL.

@@ -1,0 +1,73 @@
+name: Validate Docker Cloud Computing Project
+
+on:
+  push:
+    branches:
+      - feat/nextjs-shared-mysql
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  nextjs:
+    name: Next.js install, lint, and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mini-event-management/app-next
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: ci_database
+      DB_USER: ci_user
+      DB_PASSWORD: ci_password
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mini-event-management/app-next/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+      - name: Build Next.js
+        run: npm run build
+
+  php:
+    name: PHP syntax validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - name: Lint PHP files
+        run: find app-php -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  compose:
+    name: Docker Compose configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create CI environment file
+        run: |
+          cat > .env <<'EOF'
+          MYSQL_DATABASE=ci_database
+          MYSQL_USER=ci_user
+          MYSQL_PASSWORD=ci_password
+          MYSQL_ROOT_PASSWORD=ci_root_password
+          PHP_DEFAULT_GROUP_ID=00000000-0000-4000-8000-000000000000
+          EOF
+      - name: Validate Compose configuration
+        run: docker compose config --quiet

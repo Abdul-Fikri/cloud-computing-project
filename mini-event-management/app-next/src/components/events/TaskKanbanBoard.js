@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -68,7 +68,17 @@ const PRIORITIES = {
 };
 
 export default function TaskKanbanBoard({ eventId, tasks, members }) {
-  const [boardTasks, setBoardTasks] = useState(tasks);
+  const [boardState, setBoardState] = useState(() => ({ source: tasks, value: tasks }));
+  const boardTasks = boardState.source === tasks ? boardState.value : tasks;
+  function setBoardTasks(update) {
+    setBoardState((current) => {
+      const currentTasks = current.source === tasks ? current.value : tasks;
+      return {
+        source: tasks,
+        value: typeof update === "function" ? update(currentTasks) : update,
+      };
+    });
+  }
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [draggedTaskId, setDraggedTaskId] = useState(null);
@@ -78,9 +88,6 @@ export default function TaskKanbanBoard({ eventId, tasks, members }) {
   const [feedback, setFeedback] = useState("");
   const basePath = `/events/${eventId}/tugas`;
 
-  useEffect(() => {
-    setBoardTasks(tasks);
-  }, [tasks]);
   const memberById = new Map(members.map((member) => [member.id, member]));
 
   async function changeTaskStatus(taskId, nextStatus) {

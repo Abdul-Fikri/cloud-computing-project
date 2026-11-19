@@ -538,3 +538,284 @@ cloud-computing-project/
 4. Jangan menghapus named volume atau data database.
 5. Perubahan dokumentasi boleh dilakukan langsung di branch `main`; perubahan implementasi tetap mengikuti pembagian kerja yang disepakati.
 
+
+
+---
+
+## 18. Migrasi penuh Mini Event Management ke MySQL — 18 November 2026
+
+### Arahan pemilik
+
+Pemilik menegaskan bahwa repository tugas adalah salinan kerja yang terpisah dari repository production. Karena itu, aplikasi Mini Event Management di repository tugas boleh dimigrasikan dari Supabase/PostgreSQL ke MySQL. Repository production `Abdul-Fikri/mini-event-management` tidak boleh diubah.
+
+Izin kerja diperbarui: asisten boleh mengerjakan source code aplikasi Next.js dan dokumentasi pada branch `feat/nextjs-shared-mysql`, termasuk perubahan lapisan database dan autentikasi untuk kebutuhan migrasi. Jangan mengubah `main`, membuat PR, atau merge sebelum implementasi dan pengujian selesai.
+
+### Audit awal branch tugas
+
+Branch yang diperiksa: `feat/nextjs-shared-mysql`.
+
+Temuan:
+- Aplikasi utama berada di `mini-event-management/app-next`.
+- Stack saat ini Next.js 16, React 19, JavaScript, Supabase SSR/JS, dan mysql2.
+- Koneksi MySQL server-side sudah tersedia pada `src/lib/mysql.js`.
+- Aplikasi utama masih menggunakan Supabase pada autentikasi, proxy/session, Server Actions, query Server Components, RPC, dan Storage.
+- Skema PostgreSQL sumber memiliki 10 tabel domain: `groups`, `members`, `events`, `event_divisions`, `event_members`, `schedule_items`, `tasks`, `procurement_items`, `budget_categories`, dan `transactions`.
+- Fitur undangan anggota menambahkan `member_invitations` dan relasi akun pada `members.auth_user_id`.
+- Logo grup menggunakan Supabase Storage; migrasi harus menyediakan pengganti yang kompatibel dengan arsitektur tiga service.
+- PHP sudah menggunakan database MySQL yang sama untuk tabel demo `events`.
+
+### Implementasi yang sudah dicatat pada branch
+
+1. Ditambahkan `database/migrations/001_mini_event_management_mysql.sql` sebagai draft schema MySQL untuk tabel autentikasi/session dan domain aplikasi. ID domain tetap menggunakan UUID string CHAR(36) agar URL/form identifier tidak perlu berubah.
+2. Relasi nullable yang pada PostgreSQL menggunakan partial `ON DELETE SET NULL` disesuaikan menjadi foreign key nullable satu kolom karena MySQL tidak mendukung partial SET NULL pada foreign key komposit.
+3. Ditambahkan README root yang menjelaskan target arsitektur, cakupan migrasi, status sebenarnya, dan kehati-hatian terhadap named volume.
+
+### Status validasi
+
+- File schema baru **belum** diuji dengan MySQL 8.4.
+- Schema baru **belum** diterapkan ke volume lokal yang sudah berisi data demo.
+- Aplikasi utama **belum** dimigrasikan; ketergantungan Supabase masih ada pada source code.
+- Build Docker yang pernah berhasil hanya membuktikan build halaman demo sebelumnya, bukan seluruh aplikasi utama.
+- Jangan menjalankan `docker compose down -v`; jangan menghapus volume untuk memaksa skrip init berjalan.
+- Migrasi schema untuk volume existing harus dirancang sebagai langkah additive/backup-first, khususnya karena tabel `events` demo yang sudah ada memiliki struktur sederhana dan berbeda dari model event penuh.
+
+### Pekerjaan berikutnya
+
+1. Verifikasi dan koreksi schema MySQL dengan MySQL 8.4, termasuk constraint/trigger dan kompatibilitas tabel `events` yang sudah ada.
+2. Implementasikan autentikasi MySQL (register, login, logout, cookie session hash, expiry, CSRF/same-site, dan pembatasan akses).
+3. Migrasikan fungsi pembacaan identitas Owner/Panitia dan guard route.
+4. Migrasikan seluruh Server Actions dan query halaman dari Supabase ke SQL prepared statements.
+5. Ganti RPC procurement-finance dan division synchronization dengan transaksi/layanan server-side MySQL.
+6. Ganti Supabase Storage logo dengan penyimpanan yang tidak menambah service Docker.
+7. Jalankan build dan pengujian fitur, kemudian verifikasi PHP ↔ Next.js pada tabel domain yang sama.
+8. Perbarui dokumentasi dan skenario demo setelah validasi selesai.
+
+
+### 18.1 Implementasi tahap fondasi — 18 November 2026
+
+Perubahan source code berikut sudah di-commit ke branch tugas:
+- `src/lib/mysql-auth.js`: primitive registrasi/login dengan hash password scrypt, token sesi acak, penyimpanan hash token pada `auth_sessions`, cookie HttpOnly/SameSite=Lax, dan expiry tujuh hari.
+- `src/lib/auth.js`: lookup Owner, grup Owner, dan Panitia melalui sesi/tabel MySQL.
+- `src/actions/auth.js`: register, login, logout diarahkan ke helper autentikasi MySQL.
+- `src/actions/groups.js`: pembuatan grup Owner menggunakan prepared statement MySQL.
+- `src/proxy.js`: inisialisasi Supabase di proxy dihilangkan; otorisasi dimaksudkan dilakukan oleh guard server-side.
+
+Commit implementasi tahap ini:
+- `ae2c6a3` — primitive autentikasi/session MySQL.
+- `0897aef` — lookup auth dan guard MySQL.
+- `24b7172` — register/login/logout MySQL.
+- `8cd956c` — hapus Supabase proxy dependency.
+- `0f60577` — create group MySQL.
+
+**Peringatan status:** ini baru fondasi migrasi, belum aplikasi yang berfungsi penuh. Sebagian besar Server Actions, query halaman Server Components, undangan, logo Storage, RPC pengadaan-keuangan, serta sinkronisasi divisi masih menggunakan Supabase. Jangan melakukan demo aplikasi utama atau menyatakan migrasi selesai sampai semua ketergantungan itu diganti.
+
+### 18.2 Catatan teknis yang harus diverifikasi sebelum build
+
+- SQL schema draft belum diuji pada MySQL 8.4. Periksa sintaks, foreign key, perilaku cascade/set-null, collation email, dan kompatibilitas `CHECK`.
+- `database/migrations/001_mini_event_management_mysql.sql` bukan otomatis dieksekusi pada volume lama. Volume lokal saat ini sudah pernah diinisialisasi dan memiliki tabel demo `events`; jangan reset/hapus volume. Rancang migrasi additive terpisah dan backup terlebih dahulu.
+- `users`, `auth_sessions`, dan `members.auth_user_id` diperlukan untuk pengganti Supabase Auth. Registrasi lokal saat ini dianggap langsung terverifikasi; tidak ada email-verification flow yang dimigrasikan pada tahap fondasi ini.
+- Proxy hanya meneruskan request. Semua halaman/action terlindungi wajib memanggil guard server-side yang sesuai; lakukan audit seluruh route agar tidak ada route privat tanpa guard.
+- File Supabase lama masih berada di repository dan package dependencies belum dihapus. Hapus hanya setelah pencarian seluruh import dan pengujian build membuktikan tidak ada ketergantungan tersisa.
+
+### 18.3 Langkah berikutnya
+
+Lanjutkan migrasi per domain: dashboard/events, members/committee/divisions, rundown/tasks, procurement/finance, invitations, group logo, public join/panitia pages, export API, dan semua Server Component data reads. Setelah itu jalankan build/lint dan pengujian manual tiap alur.
+
+
+### 18.4 Migrasi domain fitur dan query halaman — 18 November 2026
+
+Perubahan berikut telah masuk ke branch setelah fondasi autentikasi:
+- Server Actions MySQL: event, anggota, divisi, penugasan panitia, rundown, tugas/Kanban, kategori anggaran, transaksi keuangan, pengadaan, sinkronisasi pengadaan-keuangan, undangan dan klaim undangan.
+- Query halaman MySQL: dashboard, daftar event, edit event, daftar anggota, susunan panitia/divisi, rundown, tugas, pengadaan, keuangan, ruang kerja Panitia.
+- CSV export menggunakan query MySQL dan tetap melakukan escaping formula CSV.
+- Logo grup tidak lagi menggunakan Supabase Storage. File gambar (JPG/PNG/WebP, maks. 2 MB) disimpan sebagai BLOB pada MySQL dan disajikan melalui route Next.js `/api/groups/[id]/logo`.
+- Ditambahkan `database/migrations/002_group_logo_blob_storage.sql` untuk kolom logo BLOB pada tabel grup yang sudah dibuat.
+
+Commit penting tahap ini:
+- `825b0e6` — event actions.
+- `6fcde30` — member actions.
+- `9b977c7` — division actions.
+- `6d59dea` — event committee assignments.
+- `72a0ec8` — schedule actions.
+- `da46243` — task actions.
+- `a2992af` — finance actions.
+- `9e15cd2` — procurement actions dan transaksi sinkron.
+- `5450b50` — event committee page.
+- `283e919` / `c4301c6` — rundown/task pages.
+- `8654f33` / `7882362` — procurement/finance pages.
+- `7cbd073` — invitation claim flow.
+- `760ebd5` — MySQL BLOB group logo storage.
+- `523e61f` — CSV export.
+
+### 18.5 Batas validasi dan risiko migrasi data
+
+Status ini adalah **source-code migration in progress**, bukan pernyataan bahwa semua fitur telah teruji. Build belum dijalankan dari lingkungan lokal pemilik setelah perubahan-perubahan ini. Lakukan build sebelum mengandalkan kode.
+
+Penting: volume lokal sudah berisi tabel demo `events` versi sederhana (`id` numerik dan `event_date`), sedangkan schema aplikasi utama memakai UUID `id`, `start_date`, `end_date`, relasi grup, status, dan metadata event. `CREATE TABLE IF NOT EXISTS` pada schema awal tidak mengubah tabel lama. Karena itu:
+- Jangan jalankan schema/migrasi domain langsung pada volume aktif sebelum strategi migrasi tabel `events` disiapkan.
+- Jangan jalankan `docker compose down -v`.
+- Backup volume/database terlebih dahulu.
+- Rancang migrasi yang mempertahankan data demo, mengonversi data lama, dan menyesuaikan aplikasi PHP ke schema event penuh atau view kompatibel.
+- Migrasi logo 002 juga harus dijalankan hanya setelah tabel `groups` tersedia.
+
+Masih perlu diaudit/migrasi:
+- semua file yang masih mengimpor `@/lib/supabase/*` atau `createClient`, termasuk API, settings, dan kemungkinan komponen pendukung;
+- pengaturan grup selain logo (jika ada update action terpisah);
+- akses route privat dan role/authorization di seluruh halaman dan API;
+- validasi penuh schema SQL MySQL 8.4 serta constraint dan perilaku transaksi;
+- build Next.js, lint, dan skenario e2e semua alur Owner dan Panitia;
+- package dependencies dan environment example setelah seluruh import Supabase benar-benar hilang.
+
+Jangan hapus dependency/config Supabase atau mengklaim migrasi selesai sebelum audit residual dan build lulus.
+
+
+### 18.6 Penyelesaian tambahan halaman, ekspor, dan logo — 18 November 2026
+
+Tambahan perubahan:
+- Seluruh halaman detail domain yang sebelumnya memakai Supabase query untuk committee/division, rundown, tugas, procurement, finance, kategori, transaksi, dan commitments dialihkan ke MySQL.
+- Halaman CSV export dialihkan ke query SQL dengan JOIN dan tetap mempertahankan formula-injection escaping.
+- Endpoint `GET /api/events` diselaraskan dengan skema event utama dan dibatasi ke grup Owner yang sedang login.
+- Logo grup disimpan di MySQL BLOB dan disajikan oleh endpoint `GET /api/groups/[id]/logo`; tidak menambah service Docker.
+- Schema awal menambahkan `logo_mime` dan `logo_data`; migrasi tambahan `002_group_logo_blob_storage.sql` disediakan untuk database yang sudah memiliki tabel groups.
+
+### 18.7 Pekerjaan yang masih wajib dilakukan
+
+1. Lakukan pencarian menyeluruh di semua file `src/` untuk memastikan tidak ada pemakaian Supabase yang tersisa (termasuk komponen, API, route publik, dan konfigurasi).
+2. Periksa semua route privat dan endpoint API agar guard MySQL dijalankan; khususnya endpoint ekspor dan endpoint event harus memiliki otorisasi group scope.
+3. Audit helper `getEventContext` dan seluruh pemanggilnya agar bentuk data hasil query tetap kompatibel.
+4. Periksa seluruh validator Zod dan nama kolom yang dihasilkan agar cocok dengan schema MySQL.
+5. Audit schema 001/002. **Jangan jalankan pada volume demo lama dulu.** Tabel `events` lokal lama memakai ID numerik dan `event_date`; schema aplikasi penuh memakai UUID dan `start_date`. Siapkan migrasi kompatibilitas yang mempertahankan baris demo dan menyesuaikan PHP sebelum eksekusi.
+6. Build aplikasi dengan Docker/Node, perbaiki seluruh error compile/runtime, kemudian uji alur Owner dan Panitia end-to-end.
+7. Periksa implementasi session (expiry, rotasi, logout, cookie), registrasi, claim invitation, serta pembatasan akses antar grup.
+8. Update dokumentasi setup/migrasi untuk volume baru dan volume lama secara terpisah.
+
+Status saat catatan ini ditulis: banyak source query/action sudah dialihkan ke MySQL, tetapi belum ada hasil build dan uji end-to-end setelah seluruh perubahan. Belum boleh merge atau menyatakan migrasi selesai.
+
+
+### 18.8 Audit lanjutan sisa Supabase dan ruang Panitia — 18 November 2026
+
+Temuan dan perbaikan tambahan:
+- `pengadaan/all/page.js` sebelumnya masih memakai Supabase untuk item, PIC, kategori, dan transaksi tertaut. Sudah dipindahkan ke MySQL.
+- `(panitia)/panitia/layout.js` sebelumnya mengambil nama grup dari Supabase. Sudah dipindahkan ke MySQL.
+- `(panitia)/panitia/events/[id]/page.js` sekarang membatasi pembacaan event, rundown, tugas, pengadaan, dan penugasan berdasarkan `member.group_id`, bukan hanya ID event.
+- `events/new/page.js` dan `members/[id]/edit/page.js` sebelumnya masih mengambil data anggota dari Supabase. Keduanya sudah dipindahkan ke MySQL.
+- Audit terarah pada actions, halaman autentikasi, komponen domain, serta beberapa halaman utama tidak menemukan pemanggilan Supabase pada file yang diperiksa. Folder helper dan dependency Supabase masih ada, jadi belum boleh dihapus sebelum pencarian final seluruh repository.
+
+### 18.9 Temuan blocker integrasi PHP dan skema fresh Docker
+
+File `app-php/src/index.php` masih menggunakan kontrak tabel demo:
+- INSERT `events(name, description, event_date, location)`
+- SELECT kolom `event_date`
+
+Sementara skema Mini Event Management `database/migrations/001_mini_event_management_mysql.sql` memakai `events.id CHAR(36)`, `group_id` wajib, dan `start_date`; tidak ada kolom `event_date`. Jadi kedua aplikasi belum dapat memakai tabel `events` yang sama secara langsung pada skema final. Ini harus diselesaikan dengan desain integrasi yang eksplisit, bukan sekadar menjalankan migration di volume yang sudah ada.
+
+Temuan tambahan:
+- `docker-compose.yml` hanya me-mount `database/init` ke `/docker-entrypoint-initdb.d`.
+- `database/init/01-create-events.sql` masih membuat tabel demo `events` dengan ID auto-increment dan `event_date`.
+- Migration aplikasi utama `database/migrations/001_mini_event_management_mysql.sql` tidak otomatis dijalankan pada fresh volume oleh Compose saat ini. Karena init script membuat tabel `events` terlebih dahulu, menjalankan migration 001 sesudahnya pun tidak akan mengubah tabel tersebut karena memakai `CREATE TABLE IF NOT EXISTS`.
+
+**Jangan jalankan migration 001/002 pada volume aktif dan jangan hapus volume.** Diperlukan rencana schema final dan migrasi data untuk dua aplikasi terlebih dahulu. Pilihan desain harus mempertahankan tepat tiga service Docker dan satu MySQL bersama, serta memastikan PHP dapat membuat/membaca event yang juga dapat dikelola aplikasi Next.js. Setelah kontrak kolom dan identitas grup disepakati, perbarui PHP, schema fresh-install, dan migrasi upgrade secara konsisten.
+
+### 18.10 Validasi terbaru
+
+- Source code perubahan berada di branch `feat/nextjs-shared-mysql`.
+- Belum ada build setelah batch migrasi terbaru.
+- Belum ada validasi integrasi pada volume lama atau fresh volume.
+- Belum boleh merge, menjalankan migrasi database, atau menyatakan seluruh aplikasi selesai.
+
+
+### 18.11 Penyatuan kontrak tabel event untuk PHP dan Next.js — 18 November 2026
+
+Perubahan source pada branch `feat/nextjs-shared-mysql`:
+
+- Skrip init untuk volume MySQL baru sekarang menggunakan schema Mini Event Management lengkap dari migration 001, bukan lagi membuat tabel demo `events` dengan ID auto-increment dan `event_date`.
+- PHP diarahkan ke kolom schema utama: `id` UUID, `group_id`, `start_date`, `name`, `description`, dan `location`.
+- PHP membaca dan menulis event hanya pada grup yang ditentukan melalui `PHP_DEFAULT_GROUP_ID`.
+- Endpoint Next.js `/api/docker-events` juga menggunakan tabel `events` yang sama dan membatasi operasi ke group ID yang sama. Field `start_date` dipetakan sebagai `event_date` pada response agar UI demo tetap kompatibel.
+- `.env.example` dan README menjelaskan konfigurasi group ID.
+
+Konfigurasi yang diperlukan:
+1. Buat akun Owner dan grup melalui aplikasi Next.js.
+2. Ambil ID grup dari database (tabel `groups`).
+3. Isi `PHP_DEFAULT_GROUP_ID` di file `.env` lokal dengan ID tersebut.
+4. Restart service aplikasi setelah konfigurasi berubah.
+
+Batasan validasi:
+- Perubahan ini belum dijalankan/build pada mesin pemilik.
+- Skrip init hanya berlaku pada volume MySQL baru. Volume aktif yang sebelumnya dibuat dengan tabel demo tidak berubah otomatis.
+- Belum ada migrasi upgrade untuk mengonversi tabel `events` lama beserta data existing. Jangan jalankan migration atau reset volume sebelum rencana backup dan konversi diuji.
+- PHP demo dan endpoint demo Next.js belum memiliki autentikasi pengguna. Group ID membatasi data yang disentuh, tetapi bukan kontrol akses yang cukup untuk deployment publik.
+
+
+### 18.12 Koreksi init script dan konfigurasi environment Next.js — 18 November 2026
+
+Pemeriksaan lanjutan menemukan ada file init lama kedua, `database/init/001_create_tables.sql`, yang juga membuat tabel `events` numerik. File tersebut telah dihapus dari branch tugas agar tidak dieksekusi sebelum schema utama. Dengan demikian hanya satu skrip init yang membuat schema lengkap.
+
+Environment `PHP_DEFAULT_GROUP_ID` sekarang diteruskan ke kedua service aplikasi (PHP dan Next.js), sehingga endpoint demo Next.js dan PHP menggunakan group scope yang sama. Batas nama event pada form demo Next.js juga diselaraskan menjadi 160 karakter sesuai kolom schema utama.
+
+**Status:** source dan dokumentasi sudah diperbarui, tetapi belum dilakukan build Docker, validasi SQL pada MySQL 8.4, atau pengujian integrasi ulang. Volume existing tetap tidak disentuh.
+
+
+### 18.13 Draft jalur upgrade aman untuk volume demo lama — 18 November 2026
+
+Ditambahkan `database/migrations/003_import_legacy_demo_events.sql` untuk memindahkan baris dari `events_legacy` ke tabel `events` schema utama setelah schema penuh diterapkan dan Owner group tersedia.
+
+Rancangan upgrade yang didokumentasikan:
+1. Backup database dan verifikasi backup.
+2. Rename tabel lama menjadi `events_legacy` (tanpa drop).
+3. Terapkan migration 001 untuk membuat schema penuh.
+4. Buat akun Owner/grup melalui Next.js.
+5. Set `PHP_DEFAULT_GROUP_ID`.
+6. Jalankan migration 003 setelah mengganti placeholder group UUID.
+7. Verifikasi jumlah baris legacy, mapping, dan hasil import.
+
+Migration 003 menggunakan tabel mapping berdasarkan ID numerik lama agar impor ulang tidak menggandakan event. Ini masih draft dan **belum diuji** pada MySQL 8.4 atau volume pemilik. Jangan jalankan sampai backup, schema, dan urutan migrasi diuji di salinan database.
+
+
+### 18.14 Koreksi validitas schema MySQL — 18 November 2026
+
+Audit menemukan dua potensi masalah sebelum database dijalankan:
+- Foreign key komposit procurement ke budget category memakai `ON DELETE SET NULL`, padahal kolom `event_id` pada FK tersebut wajib NOT NULL. Diubah menjadi `ON DELETE RESTRICT` agar kategori yang masih dipakai tidak dapat dihapus diam-diam.
+- Skrip init volume baru sebelumnya belum tersinkron dengan koreksi migration 001. Sekarang isi init disalin persis dari migration 001 yang telah dikoreksi.
+
+Migration 002 untuk logo dihapus karena kolom `logo_mime` dan `logo_data` sudah menjadi bagian schema 001; menjalankan ALTER TABLE lama akan menghasilkan duplicate column. README dibersihkan dari referensi migration 002.
+
+Belum ada eksekusi SQL pada database lokal. Validasi runtime MySQL 8.4 masih menjadi pekerjaan berikutnya.
+
+
+### 18.15 Audit lanjutan autentikasi, halaman, dan API — 18 November 2026
+
+Pemeriksaan file terpilih pada source Next.js menunjukkan:
+- Server Actions utama (auth, groups, events, members, divisions, schedule, tasks, procurement, finance, invitations, group logo) sudah memakai MySQL dan tidak lagi mengimpor Supabase.
+- Halaman login/register memakai Server Actions MySQL.
+- Halaman dashboard, event, keuangan, panitia, rundown, tugas, anggota, onboarding, dan pengaturan yang diperiksa memakai query MySQL.
+- `src/proxy.js` melewatkan request ke route handlers/server components; autentikasi dipaksakan pada fungsi guard seperti `requireOwner`, `requireGroup`, dan `requirePanitia`.
+- API logo grup sebelumnya bisa diakses hanya dengan mengetahui UUID. Endpoint kini memeriksa session dan memastikan user adalah Owner atau anggota grup sebelum mengirim BLOB, serta memakai cache private/no-store.
+- Endpoint demo `/api/docker-events` tetap sengaja tanpa login untuk kebutuhan integrasi tugas dan dibatasi ke `PHP_DEFAULT_GROUP_ID`. Jangan expose demo ke internet publik tanpa lapisan autentikasi tambahan.
+
+Audit ini mencakup file-file utama yang dipilih, bukan bukti bahwa seluruh 118 file sudah bebas dari semua referensi Supabase. Paket `@supabase/*` dan file helper lama belum dibersihkan karena lockfile belum diregenerasi; belum ditemukan jalur runtime utama yang masih memakainya pada file yang diperiksa.
+
+**Belum dilakukan:** npm ci/build, lint, eksekusi schema pada MySQL 8.4, uji CRUD end-to-end setelah migrasi, dan uji upgrade volume lama. Semua tetap perlu dilakukan sebelum PR/merge.
+
+
+### 18.16 Audit dependency, autentikasi, API, dan konfigurasi build — 18 November 2026
+
+Pemeriksaan lanjutan pada branch tugas:
+
+- `src/proxy.js` hanya meneruskan request dan tidak menginisialisasi Supabase. Guard autentikasi MySQL berada pada server-side helpers/actions.
+- `mysql-auth.js` menyimpan hash token session (SHA-256), token acak 32-byte hanya berada di cookie HttpOnly, cookie memakai SameSite=Lax, dan masa berlaku session tujuh hari.
+- Password disimpan dengan scrypt + salt acak; validasi login membandingkan hash dengan `timingSafeEqual`.
+- API ekspor CSV membatasi event berdasarkan grup Owner dan menetralkan awalan formula spreadsheet pada nilai CSV.
+- API logo grup sudah memerlukan session dan keanggotaan/ownership sebelum mengirim data logo.
+- Health endpoint hanya mengembalikan status koneksi generik, bukan detail kredensial.
+- Dockerfile memakai multi-stage build, `npm ci`, Next standalone output, dan runtime non-root.
+- Compose tetap tepat tiga service inti: Next.js, PHP/Apache, dan MySQL pada satu bridge network; kedua aplikasi memakai host database `mysql` dan named volume `mysql_data`.
+
+Temuan yang masih perlu dibereskan/diuji:
+
+- `package.json` dan `package-lock.json` masih mencantumkan `@supabase/ssr` dan `@supabase/supabase-js`. Keduanya belum dihapus karena lockfile harus diregenerasi secara konsisten; mengedit `package.json` saja akan membuat `npm ci` gagal.
+- Folder helper `src/lib/supabase/` masih ada. Pemeriksaan saat ini belum membuktikan seluruh 120 file source bebas dari import/referensi Supabase; jangan menghapus helper sebelum pencarian menyeluruh.
+- `next.config.mjs` masih memiliki konfigurasi remote image Supabase Storage yang tampaknya merupakan sisa konfigurasi lama. Perlu verifikasi pemakaian `next/image` sebelum dibersihkan.
+- Pemeriksaan source bukan pengganti runtime validation. Belum ada hasil `npm ci`, ESLint, `next build`, PHP lint, Docker Compose build, atau tes integrasi setelah migrasi.
+
+Tidak ada SQL dijalankan dan tidak ada volume database yang diubah. Branch produksi tetap tidak disentuh. PR/merge tetap ditahan sampai validasi lokal dan upgrade database dilakukan dengan backup yang terverifikasi.
