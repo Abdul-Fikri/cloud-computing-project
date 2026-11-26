@@ -63,6 +63,33 @@ services:
         condition: service_healthy
     networks:
       - shared-network
+  
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - shared-network
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - app-next
+      - app-php
+      - phpmyadmin
+    networks:
+      - shared-network
+
 
 volumes:
   mysql_data:
